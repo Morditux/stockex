@@ -1,11 +1,11 @@
 {{define "layout"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{.Lang}}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.AppName}} - Password Manager</title>
+    <title>{{.AppName}} - {{T "PasswordManager"}}</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,14 +19,14 @@
             <a href="/" class="logo">{{.AppName}}</a>
             <div class="nav-links">
                 {{if .}}
-                <a href="/dashboard">Dashboard</a>
+                <a href="/dashboard">{{T "Dashboard"}}</a>
                 {{if .IsAdmin}}
-                <a href="/admin">Admin</a>
+                <a href="/admin">{{T "Admin"}}</a>
                 {{end}}
-                <a href="/logout">Logout</a>
+                <a href="/logout">{{T "Logout"}}</a>
                 {{else}}
-                <a href="/login">Login</a>
-                <a href="/signup">Signup</a>
+                <a href="/login">{{T "Login"}}</a>
+                <a href="/signup">{{T "Signup"}}</a>
                 {{end}}
             </div>
         </div>

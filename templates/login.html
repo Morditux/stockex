@@ -1,27 +1,27 @@
 {{define "content"}}
 <div class="form-container">
-    <h2>Welcome Back</h2>
+    <h2>{{T "WelcomeBack"}}</h2>
     <form hx-post="/login" hx-swap="none">
         <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required placeholder="Enter username">
+            <label for="username">{{T "Username"}}</label>
+            <input type="text" id="username" name="username" required placeholder="{{T " EnterUsername"}}">
         </div>
         <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required placeholder="Enter password">
+            <label for="password">{{T "Password"}}</label>
+            <input type="password" id="password" name="password" required placeholder="{{T " EnterPassword"}}">
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">{{T "Login"}}</button>
     </form>
-    <p>Don't have an account? <a href="/signup">Sign up</a></p>
+    <p>{{T "NoAccount"}} <a href="/signup">{{T "Signup"}}</a></p>
 </div>
 
 <!-- Login Error Modal -->
 <div id="errorModal" class="modal">
     <div class="modal-content">
-        <h2 style="color: var(--error); text-align: center;">Login Failed</h2>
-        <p style="text-align: center; margin-bottom: 2rem;">Invalid username or password. Please try again.</p>
+        <h2 style="color: var(--error); text-align: center;">{{T "LoginFailed"}}</h2>
+        <p style="text-align: center; margin-bottom: 2rem;">{{T "InvalidCredentials"}}</p>
         <div class="modal-actions" style="justify-content: center;">
-            <button class="btn btn-secondary" onclick="closeErrorModal()">Close</button>
+            <button class="btn btn-secondary" onclick="closeErrorModal()">{{T "Close"}}</button>
         </div>
     </div>
 </div>

@@ -10,6 +10,7 @@ import (
 	"stockex/config"
 	"stockex/crypto"
 	"stockex/db"
+	"stockex/i18n"
 	"stockex/models"
 )
 
@@ -53,7 +54,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	renderTemplate(w, "index.html", map[string]interface{}{"AppName": config.AppConfig.AppName})
+	renderTemplate(w, r, "index.html", map[string]interface{}{"AppName": config.AppConfig.AppName})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +85,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
-	renderTemplate(w, "login.html", nil)
+	renderTemplate(w, r, "login.html", nil)
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,8 +97,9 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		salt, _ := db.GenerateSalt()
 		result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", username, hashedPassword, salt)
 		if err != nil {
+			lang := i18n.DetectLanguage(r)
 			w.Header().Set("HX-Retarget", "#error-message")
-			w.Write([]byte("Username already exists"))
+			w.Write([]byte(i18n.T(lang, "UsernameAlreadyExists")))
 			return
 		}
 
@@ -109,7 +111,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
-	renderTemplate(w, "signup.html", nil)
+	renderTemplate(w, r, "signup.html", nil)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +125,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	renderTemplate(w, "dashboard.html", map[string]interface{}{
+	renderTemplate(w, r, "dashboard.html", map[string]interface{}{
 		"IsAdmin": auth.IsAdmin(r),
 		"AppName": config.AppConfig.AppName,
 	})
@@ -154,7 +156,7 @@ func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
 		passwords = append(passwords, p)
 	}
 
-	renderTemplate(w, "passwords.html", map[string]interface{}{"Passwords": passwords, "IsAdmin": auth.IsAdmin(r)})
+	renderTemplate(w, r, "passwords.html", map[string]interface{}{"Passwords": passwords, "IsAdmin": auth.IsAdmin(r)})
 }
 
 func AddPasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -314,20 +316,34 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 		users = append(users, u)
 	}
 
-	renderTemplate(w, "admin.html", map[string]interface{}{"Users": users, "IsAdmin": true})
+	renderTemplate(w, r, "admin.html", map[string]interface{}{"Users": users, "IsAdmin": true})
 }
 
-func renderTemplate(w http.ResponseWriter, name string, data interface{}) {
-	tmpl, err := template.ParseFiles("templates/layout.html", "templates/"+name)
+func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data interface{}) {
+	lang := i18n.DetectLanguage(r)
+
+	funcMap := template.FuncMap{
+		"T": func(key string) string {
+			return i18n.T(lang, key)
+		},
+	}
+
+	tmpl, err := template.New(name).Funcs(funcMap).ParseFiles("templates/layout.html", "templates/"+name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// If data is a map, ensure AppName is there
+	// If data is a map, ensure AppName and Lang are there
 	if m, ok := data.(map[string]interface{}); ok {
 		if _, exists := m["AppName"]; !exists {
 			m["AppName"] = config.AppConfig.AppName
+		}
+		m["Lang"] = lang
+	} else if data == nil {
+		data = map[string]interface{}{
+			"AppName": config.AppConfig.AppName,
+			"Lang":    lang,
 		}
 	}
 
@@ -349,8 +365,9 @@ func ImportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := r.FormFile("csv_file")
 	if err != nil {
+		lang := i18n.DetectLanguage(r)
 		w.Header().Set("HX-Retarget", "#import-error")
-		w.Write([]byte("Error uploading file"))
+		w.Write([]byte(i18n.T(lang, "ErrorUploadingFile")))
 		return
 	}
 	defer file.Close()
@@ -359,8 +376,9 @@ func ImportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 	// Skip header
 	_, err = reader.Read()
 	if err != nil {
+		lang := i18n.DetectLanguage(r)
 		w.Header().Set("HX-Retarget", "#import-error")
-		w.Write([]byte("Empty or invalid CSV"))
+		w.Write([]byte(i18n.T(lang, "EmptyOrInvalidCSV")))
 		return
 	}
 

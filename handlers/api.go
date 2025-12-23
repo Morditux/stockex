@@ -7,6 +7,7 @@ import (
 	"stockex/auth"
 	"stockex/crypto"
 	"stockex/db"
+	"stockex/i18n"
 	"stockex/models"
 )
 
@@ -31,8 +32,9 @@ func getAPISession(r *http.Request) (auth.APISession, bool) {
 }
 
 func APILoginHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	if r.Method != http.MethodPost {
-		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: "Method not allowed"})
+		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: i18n.T(lang, "MethodNotAllowed")})
 		return
 	}
 
@@ -42,7 +44,7 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
@@ -57,7 +59,7 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 
 	if err != nil || !db.CheckPasswordHash(input.Password, user.PasswordHash) {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Invalid username or password"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidCredentials")})
 		return
 	}
 
@@ -78,8 +80,9 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func APISignupHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	if r.Method != http.MethodPost {
-		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: "Method not allowed"})
+		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: i18n.T(lang, "MethodNotAllowed")})
 		return
 	}
 
@@ -89,7 +92,7 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
@@ -97,7 +100,7 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 	salt, _ := db.GenerateSalt()
 	result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", input.Username, hashedPassword, salt)
 	if err != nil {
-		sendJSONResponse(w, http.StatusConflict, APIResponse{Status: "error", Message: "Username already exists"})
+		sendJSONResponse(w, http.StatusConflict, APIResponse{Status: "error", Message: i18n.T(lang, "UsernameAlreadyExists")})
 		return
 	}
 
@@ -118,9 +121,10 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIListPasswordsHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	session, ok := getAPISession(r)
 	if !ok {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "Unauthorized")})
 		return
 	}
 
@@ -144,9 +148,10 @@ func APIListPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIAddPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	session, ok := getAPISession(r)
 	if !ok {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "Unauthorized")})
 		return
 	}
 
@@ -158,13 +163,13 @@ func APIAddPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
 	encrypted, err := crypto.Encrypt(input.Password, session.MasterKey)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Encryption error"})
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "EncryptionError")})
 		return
 	}
 
@@ -180,9 +185,10 @@ func APIAddPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	session, ok := getAPISession(r)
 	if !ok {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "Unauthorized")})
 		return
 	}
 
@@ -195,13 +201,13 @@ func APIUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
 	encrypted, err := crypto.Encrypt(input.Password, session.MasterKey)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Encryption error"})
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "EncryptionError")})
 		return
 	}
 
@@ -212,13 +218,14 @@ func APIUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: "Password updated"})
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: i18n.T(lang, "PasswordUpdated")})
 }
 
 func APIDeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	session, ok := getAPISession(r)
 	if !ok {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "Unauthorized")})
 		return
 	}
 
@@ -227,7 +234,7 @@ func APIDeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
@@ -237,13 +244,14 @@ func APIDeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: "Password deleted"})
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: i18n.T(lang, "PasswordDeleted")})
 }
 
 func APIDecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.DetectLanguage(r)
 	session, ok := getAPISession(r)
 	if !ok {
-		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "Unauthorized")})
 		return
 	}
 
@@ -252,13 +260,13 @@ func APIDecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidRequestBody")})
 		return
 	}
 
 	decrypted, err := crypto.Decrypt(input.EncryptedPassword, session.MasterKey)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Decryption error"})
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "DecryptionErrorAPI")})
 		return
 	}
 

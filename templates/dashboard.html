@@ -1,43 +1,43 @@
 {{define "content"}}
 <div class="dashboard-container">
     <div class="dashboard-header">
-        <h1>Welcome to your <span class="gradient-text">Vault</span></h1>
+        <h1>{{T "WelcomeToVault"}}</h1>
         <div class="header-actions">
-            <button class="btn btn-secondary" onclick="showChangePasswordModal()">Change Password</button>
-            <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
-            <button class="btn btn-primary" onclick="showAddModal()">+ Add Password</button>
+            <button class="btn btn-secondary" onclick="showChangePasswordModal()">{{T "ChangePassword"}}</button>
+            <button class="btn btn-secondary" onclick="showImportModal()">{{T "ImportCSV"}}</button>
+            <button class="btn btn-primary" onclick="showAddModal()">{{T "AddPassword"}}</button>
         </div>
     </div>
 
     <div class="password-grid" hx-get="/passwords" hx-trigger="load, passwordChanged from:body">
-        <div class="loading">Loading your passwords...</div>
+        <div class="loading">{{T "LoadingPasswords"}}</div>
     </div>
 </div>
 
 <!-- Add Password Modal -->
 <div id="add-password-modal" class="modal">
     <div class="modal-content">
-        <h2>Add New Password</h2>
+        <h2>{{T "AddNewPassword"}}</h2>
         <form hx-post="/passwords/add" hx-swap="none">
             <div class="form-group">
-                <label>Site / Service</label>
-                <input type="text" name="site" required placeholder="e.g. Google, GitHub">
+                <label>{{T "SiteService"}}</label>
+                <input type="text" name="site" required placeholder="{{T " EGGoogle"}}">
             </div>
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required placeholder="Email or username">
+                <label>{{T "Username"}}</label>
+                <input type="text" name="username" required placeholder="{{T " EmailOrUsername"}}">
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required placeholder="Site password">
+                <label>{{T "Password"}}</label>
+                <input type="password" name="password" required placeholder="{{T " SitePassword"}}">
             </div>
             <div class="form-group">
-                <label>Notes</label>
-                <textarea name="notes" placeholder="Optional notes"></textarea>
+                <label>{{T "Notes"}}</label>
+                <textarea name="notes" placeholder="{{T " OptionalNotes"}}"></textarea>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="hideAddModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Password</button>
+                <button type="button" class="btn btn-secondary" onclick="hideAddModal()">{{T "Cancel"}}</button>
+                <button type="submit" class="btn btn-primary">{{T "SavePassword"}}</button>
             </div>
         </form>
     </div>
@@ -46,28 +46,28 @@
 <!-- Edit Password Modal -->
 <div id="edit-password-modal" class="modal">
     <div class="modal-content">
-        <h2>Edit Password</h2>
+        <h2>{{T "EditPassword"}}</h2>
         <form hx-post="/passwords/update" hx-swap="none">
             <input type="hidden" name="id" id="edit-id">
             <div class="form-group">
-                <label>Site / Service</label>
+                <label>{{T "SiteService"}}</label>
                 <input type="text" name="site" id="edit-site" required>
             </div>
             <div class="form-group">
-                <label>Username</label>
+                <label>{{T "Username"}}</label>
                 <input type="text" name="username" id="edit-username" required>
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" id="edit-password" required placeholder="Site password">
+                <label>{{T "Password"}}</label>
+                <input type="password" name="password" id="edit-password" required placeholder="{{T " SitePassword"}}">
             </div>
             <div class="form-group">
-                <label>Notes</label>
-                <textarea name="notes" id="edit-notes" placeholder="Optional notes"></textarea>
+                <label>{{T "Notes"}}</label>
+                <textarea name="notes" id="edit-notes" placeholder="{{T " OptionalNotes"}}"></textarea>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="hideEditModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update Password</button>
+                <button type="button" class="btn btn-secondary" onclick="hideEditModal()">{{T "Cancel"}}</button>
+                <button type="submit" class="btn btn-primary">{{T "UpdatePassword"}}</button>
             </div>
         </form>
     </div>
@@ -76,17 +76,18 @@
 <!-- Change Password Modal -->
 <div id="change-password-modal" class="modal">
     <div class="modal-content">
-        <h2>Change Account Password</h2>
+        <h2>{{T "ChangeAccountPassword"}}</h2>
         <form hx-post="/change-password" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) hideChangePasswordModal()">
             <div class="form-group">
-                <label>New Password</label>
-                <input type="password" name="new_password" required placeholder="Enter new password">
+                <label>{{T "NewPassword"}}</label>
+                <input type="password" name="new_password" required placeholder="{{T " EnterPassword"}}">
             </div>
             <div id="password-error" class="error"></div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="hideChangePasswordModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update Password</button>
+                <button type="button" class="btn btn-secondary" onclick="hideChangePasswordModal()">{{T
+                    "Cancel"}}</button>
+                <button type="submit" class="btn btn-primary">{{T "UpdatePassword"}}</button>
             </div>
         </form>
     </div>
@@ -95,9 +96,8 @@
 <!-- Import Passwords Modal -->
 <div id="import-password-modal" class="modal">
     <div class="modal-content">
-        <h2>Import Chrome Passwords</h2>
-        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Upload a CSV file exported from Chrome (name, url,
-            username, password, note).</p>
+        <h2>{{T "ImportChromePasswords"}}</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">{{T "ImportInstructions"}}</p>
         <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
             <div class="form-group">
@@ -105,8 +105,8 @@
             </div>
             <div id="import-error" class="error"></div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="hideImportModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Import Now</button>
+                <button type="button" class="btn btn-secondary" onclick="hideImportModal()">{{T "Cancel"}}</button>
+                <button type="submit" class="btn btn-primary">{{T "ImportNow"}}</button>
             </div>
         </form>
     </div>
@@ -144,7 +144,7 @@
     }
 
     document.body.addEventListener('passwordUpdated', function () {
-        alert('Password updated successfully!');
+        alert('{{T "PasswordUpdatedSuccessfully"}}');
     });
 </script>
 {{end}}

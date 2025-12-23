@@ -1,14 +1,14 @@
 {{define "content"}}
 <div class="admin-container">
-    <h1>User Management</h1>
+    <h1>{{T "UserManagement"}}</h1>
     <table class="admin-table">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Username</th>
+                <th>{{T "Username"}}</th>
                 <th>Role</th>
-                <th>Created At</th>
-                <th>Actions</th>
+                <th>{{T "CreatedAt"}}</th>
+                <th>{{T "Actions"}}</th>
             </tr>
         </thead>
         <tbody>
@@ -20,7 +20,7 @@
                 <td>{{.CreatedAt.Format "2006-01-02"}}</td>
                 <td>
                     {{if ne .Role "admin"}}
-                    <button class="btn btn-sm btn-danger">Delete</button>
+                    <button class="btn btn-sm btn-danger">{{T "Delete"}}</button>
                     {{end}}
                 </td>
             </tr>

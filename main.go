@@ -8,6 +8,7 @@ import (
 	"stockex/config"
 	"stockex/db"
 	"stockex/handlers"
+	"stockex/i18n"
 )
 
 func CORSMiddleware(next http.Handler) http.Handler {
@@ -37,6 +38,11 @@ func main() {
 	if err := config.LoadConfig("config.json"); err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
+
+	if err := i18n.LoadTranslations("i18n"); err != nil {
+		log.Fatalf("Error loading translations: %v", err)
+	}
+
 	auth.InitStore()
 
 	db.InitDB("./stockex.db")

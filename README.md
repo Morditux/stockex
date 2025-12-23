@@ -11,6 +11,8 @@ StockEx is a premium, secure, and fast password manager built with **Go**, **HTM
 - **Chrome Import**: Easily import your passwords from Chrome CSV exports with automatic deduplication.
 - **UI Enhancements**: Modern error modals and password tooltips for a premium experience.
 - **Mobile Optimized**: Responsive design tested for various screen sizes.
+- **Multi-language Support**: Fully internationalized UI (English & French supported).
+- **Auto-Language Detection**: Automatically detects user language from browser settings.
 - **Docker Ready**: Deploy anywhere in seconds.
 - **External Configuration**: Flexible settings via `config.json`.
 - **Unit Tested**: Comprehensive test suite ensuring code reliability.
@@ -74,6 +76,15 @@ Modify `config.json` to adjust application settings:
 | `listen_ip` | IP address to bind to | `0.0.0.0` |
 | `listen_port`| Server port | `8080` |
 | `session_key`| Secret for session encryption | `super-secret-key` |
+
+## 🌍 Internationalization (i18n)
+
+StockEx supports multiple languages. Text translations are stored in external JSON files located in the `i18n/` directory:
+
+- `i18n/en.json`: English translations (default).
+- `i18n/fr.json`: French translations.
+
+The application automatically detects the browser's preferred language through the `Accept-Language` HTTP header. If a translation key is missing in the detected language, it falls back to English.
 
 ## 📱 Mobile API
 
