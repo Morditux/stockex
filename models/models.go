@@ -16,7 +16,7 @@ type PasswordEntry struct {
 	UserID            int       `json:"user_id"`
 	Site              string    `json:"site"`
 	Username          string    `json:"username"`
-	EncryptedPassword string    `json:"password"`
+	EncryptedPassword string    `json:"encrypted_password"`
 	Notes             string    `json:"notes"`
 	CreatedAt         time.Time `json:"created_at"`
 }

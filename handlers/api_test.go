@@ -113,6 +113,51 @@ func TestAPIAddPassword(t *testing.T) {
 	if w.Code != http.StatusCreated {
 		t.Errorf("Add password failed, expected 201, got %d. Body: %s", w.Code, w.Body.String())
 	}
+
+	var resp APIResponse
+	json.NewDecoder(w.Body).Decode(&resp)
+	dataMap := resp.Data.(map[string]interface{})
+	passwordID := int(dataMap["id"].(float64))
+
+	// 2. List to get encrypted password
+	req = httptest.NewRequest("GET", "/api/v1/passwords", nil)
+	req.Header.Set("X-API-Token", token)
+	w = httptest.NewRecorder()
+	APIListPasswordsHandler(w, req)
+
+	var listResp APIResponse
+	json.NewDecoder(w.Body).Decode(&listResp)
+	passwords := listResp.Data.([]interface{})
+	var encrypted string
+	for _, p := range passwords {
+		pMap := p.(map[string]interface{})
+		if int(pMap["id"].(float64)) == passwordID {
+			encrypted = pMap["encrypted_password"].(string)
+			break
+		}
+	}
+
+	// 3. Decrypt
+	decryptData := map[string]string{
+		"encrypted_password": encrypted,
+	}
+	body, _ = json.Marshal(decryptData)
+	req = httptest.NewRequest("POST", "/api/v1/passwords/decrypt", bytes.NewBuffer(body))
+	req.Header.Set("X-API-Token", token)
+	w = httptest.NewRecorder()
+
+	APIDecryptPasswordHandler(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Decrypt failed, expected 200, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var decryptResp APIResponse
+	json.NewDecoder(w.Body).Decode(&decryptResp)
+	decryptedData := decryptResp.Data.(map[string]interface{})
+	if decryptedData["decrypted_password"].(string) != "git-password" {
+		t.Errorf("Expected decrypted 'git-password', got %s", decryptedData["decrypted_password"])
+	}
 }
 
 func TestAPIUnauthorized(t *testing.T) {

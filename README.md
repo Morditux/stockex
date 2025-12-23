@@ -94,6 +94,21 @@ StockEx provides a REST API under `/api/v1` for mobile integration. All requests
 > [!IMPORTANT]
 > Authentication for the API uses a **Persistent Token-based** mechanism. After a successful login or signup, the server returns a `token`. This token is stored in the database (with the encrypted master key) and remains valid across server restarts. It must be included in all subsequent requests in the **`X-API-Token`** header.
 
+## 🧩 Chrome Extension (Autofill)
+
+StockEx comes with a companion Chrome extension that automatically detects login forms and fills them using your vault entries.
+
+### Installation
+1. Open Chrome and navigate to `chrome://extensions/`.
+2. Enable **"Developer mode"** (top right).
+3. Click **"Load unpacked"** and select the `extension/` directory from this repository.
+
+### Configuration
+1. Click the StockEx icon in your extension bar.
+2. Enter your server address (default: `http://localhost:8080`).
+3. Login with your StockEx credentials.
+4. The extension will now automatically detect login fields on websites matching your vault entries.
+
 ## 🛡️ Admin Access
 The default administrator account is:
 - **Username**: `admin`

@@ -99,7 +99,6 @@ func GetAPISession(token string) (APISession, bool) {
 	serverKey := sha256.Sum256([]byte(config.AppConfig.SessionKey))
 	decryptedKeyB64, err := crypto.Decrypt(encryptedKey, serverKey[:])
 	if err != nil {
-		fmt.Printf("Error decrypting master key from DB: %v\n", err)
 		return APISession{}, false
 	}
 
