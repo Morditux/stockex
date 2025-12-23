@@ -1,9 +1,14 @@
 package auth
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"stockex/config"
+	"stockex/crypto"
+	"stockex/db"
 
 	"github.com/gorilla/sessions"
 )
@@ -54,4 +59,56 @@ func ClearSession(w http.ResponseWriter, r *http.Request) {
 	session, _ := Store.Get(r, SessionName)
 	session.Options.MaxAge = -1
 	session.Save(r, w)
+}
+
+// Token-based Auth for API (Persistent)
+type APISession struct {
+	UserID    int
+	Role      string
+	MasterKey []byte
+}
+
+func CreateAPIToken(userID int, role string, masterKey []byte) string {
+	token := generateRandomToken(32)
+
+	// Encrypt the master key with the server session key
+	serverKey := sha256.Sum256([]byte(config.AppConfig.SessionKey))
+	encryptedKey, _ := crypto.Encrypt(base64.StdEncoding.EncodeToString(masterKey), serverKey[:])
+
+	_, err := db.DB.Exec("INSERT INTO api_sessions (token, user_id, role, encrypted_master_key) VALUES (?, ?, ?, ?)",
+		token, userID, role, encryptedKey)
+	if err != nil {
+		fmt.Printf("Error creating API token in DB: %v\n", err)
+		return ""
+	}
+
+	return token
+}
+
+func GetAPISession(token string) (APISession, bool) {
+	var sess APISession
+	var encryptedKey string
+
+	err := db.DB.QueryRow("SELECT user_id, role, encrypted_master_key FROM api_sessions WHERE token = ?", token).
+		Scan(&sess.UserID, &sess.Role, &encryptedKey)
+	if err != nil {
+		return APISession{}, false
+	}
+
+	// Decrypt the master key
+	serverKey := sha256.Sum256([]byte(config.AppConfig.SessionKey))
+	decryptedKeyB64, err := crypto.Decrypt(encryptedKey, serverKey[:])
+	if err != nil {
+		fmt.Printf("Error decrypting master key from DB: %v\n", err)
+		return APISession{}, false
+	}
+
+	sess.MasterKey, _ = base64.StdEncoding.DecodeString(decryptedKeyB64)
+	return sess, true
+}
+
+func generateRandomToken(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }

@@ -63,6 +63,18 @@ func InitDB(dataSourceName string) {
 		}
 		log.Println("Default admin created: admin / admin123")
 	}
+
+	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS api_sessions (
+		token TEXT PRIMARY KEY,
+		user_id INTEGER NOT NULL,
+		role TEXT NOT NULL,
+		encrypted_master_key TEXT NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY(user_id) REFERENCES users(id)
+	)`)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func HashPassword(password string) (string, error) {

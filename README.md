@@ -71,6 +71,25 @@ Modify `config.json` to adjust application settings:
 | `listen_port`| Server port | `8080` |
 | `session_key`| Secret for session encryption | `super-secret-key` |
 
+## 📱 Mobile API
+
+StockEx provides a REST API under `/api/v1` for mobile integration. All requests/responses use JSON.
+
+### Endpoints
+
+- **Auth**:
+  - `POST /api/v1/login`: `{username, password}`
+  - `POST /api/v1/signup`: `{username, password}`
+- **Passwords**:
+  - `GET /api/v1/passwords`: Returns all entries.
+  - `POST /api/v1/passwords`: `{site, username, password, notes}`
+  - `PUT /api/v1/passwords`: `{id, site, username, password, notes}`
+  - `DELETE /api/v1/passwords`: `{id}`
+  - `POST /api/v1/passwords/decrypt`: `{encrypted_password}`
+
+> [!IMPORTANT]
+> Authentication for the API uses a **Persistent Token-based** mechanism. After a successful login or signup, the server returns a `token`. This token is stored in the database (with the encrypted master key) and remains valid across server restarts. It must be included in all subsequent requests in the **`X-API-Token`** header.
+
 ## 🛡️ Admin Access
 The default administrator account is:
 - **Username**: `admin`
