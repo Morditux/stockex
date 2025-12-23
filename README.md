@@ -8,8 +8,12 @@ StockEx is a premium, secure, and fast password manager built with **Go**, **HTM
 - **System Clipboard Integration**: Copy passwords securely with visual feedback.
 - **HTMX Powered**: Smooth, single-page experience without full page reloads.
 - **Admin Panel**: Manage users and roles directly from the application.
+- **Chrome Import**: Easily import your passwords from Chrome CSV exports with automatic deduplication.
+- **UI Enhancements**: Modern error modals and password tooltips for a premium experience.
+- **Mobile Optimized**: Responsive design tested for various screen sizes.
 - **Docker Ready**: Deploy anywhere in seconds.
 - **External Configuration**: Flexible settings via `config.json`.
+- **Unit Tested**: Comprehensive test suite ensuring code reliability.
 
 ## 🏗️ Architecture
 

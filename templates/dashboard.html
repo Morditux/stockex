@@ -4,6 +4,7 @@
         <h1>Welcome to your <span class="gradient-text">Vault</span></h1>
         <div class="header-actions">
             <button class="btn btn-secondary" onclick="showChangePasswordModal()">Change Password</button>
+            <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
             <button class="btn btn-primary" onclick="showAddModal()">+ Add Password</button>
         </div>
     </div>
@@ -91,7 +92,34 @@
     </div>
 </div>
 
+<!-- Import Passwords Modal -->
+<div id="import-password-modal" class="modal">
+    <div class="modal-content">
+        <h2>Import Chrome Passwords</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Upload a CSV file exported from Chrome (name, url,
+            username, password, note).</p>
+        <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
+            hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
+            <div class="form-group">
+                <input type="file" name="csv_file" accept=".csv" required>
+            </div>
+            <div id="import-error" class="error"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideImportModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Import Now</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    function showImportModal() {
+        document.getElementById('import-password-modal').style.display = 'flex';
+    }
+    function hideImportModal() {
+        document.getElementById('import-password-modal').style.display = 'none';
+        document.getElementById('import-error').innerText = '';
+    }
     function showAddModal() {
         document.getElementById('add-password-modal').style.display = 'flex';
     }

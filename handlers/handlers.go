@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/base64"
+	"encoding/csv"
 	"html/template"
+	"io"
 	"net/http"
 	"stockex/auth"
 	"stockex/config"
@@ -22,6 +24,7 @@ func RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/passwords/delete", DeletePasswordHandler)
 	mux.HandleFunc("/passwords/update", UpdatePasswordHandler)
 	mux.HandleFunc("/passwords/decrypt", DecryptPasswordHandler)
+	mux.HandleFunc("/passwords/import", ImportPasswordsHandler)
 	mux.HandleFunc("/change-password", ChangePasswordHandler)
 	mux.HandleFunc("/admin", AdminHandler)
 
@@ -329,4 +332,74 @@ func renderTemplate(w http.ResponseWriter, name string, data interface{}) {
 	}
 
 	tmpl.ExecuteTemplate(w, "layout", data)
+}
+
+func ImportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := auth.GetUserID(r)
+	masterKey := auth.GetMasterKey(r)
+	if userID == 0 || masterKey == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	file, _, err := r.FormFile("csv_file")
+	if err != nil {
+		w.Header().Set("HX-Retarget", "#import-error")
+		w.Write([]byte("Error uploading file"))
+		return
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	// Skip header
+	_, err = reader.Read()
+	if err != nil {
+		w.Header().Set("HX-Retarget", "#import-error")
+		w.Write([]byte("Empty or invalid CSV"))
+		return
+	}
+
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			continue // Skip malformed rows
+		}
+
+		// Chrome format: name,url,username,password,note
+		if len(record) < 4 {
+			continue
+		}
+
+		site := record[0]
+		username := record[2]
+		rawPassword := record[3]
+		notes := ""
+		if len(record) > 4 {
+			notes = record[4]
+		}
+
+		// Deduplication: Check if already exists for this user
+		var count int
+		err = db.DB.QueryRow("SELECT COUNT(*) FROM passwords WHERE user_id = ? AND site = ? AND username = ?",
+			userID, site, username).Scan(&count)
+		if err == nil && count > 0 {
+			continue // Skip duplicate
+		}
+
+		encrypted, err := crypto.Encrypt(rawPassword, masterKey)
+		if err != nil {
+			continue
+		}
+
+		_, err = db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
+			userID, site, username, encrypted, notes)
+	}
 }
