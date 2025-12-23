@@ -71,6 +71,5 @@
     "DecryptionErrorAPI": "Decryption error",
     "ErrorUploadingFile": "Error uploading file",
     "EmptyOrInvalidCSV": "Empty or invalid CSV",
-    "PasswordUpdatedSuccessfully": "Password updated successfully!",
-    "Site": "Site"
+    "PasswordUpdatedSuccessfully": "Password updated successfully!"
 }
