@@ -69,8 +69,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 
 		if err != nil || !db.CheckPasswordHash(password, user.PasswordHash) {
-			w.Header().Set("HX-Retarget", "#error-message")
-			w.Write([]byte("Invalid username or password"))
+			w.Header().Set("HX-Trigger", "loginError")
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
