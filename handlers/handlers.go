@@ -24,6 +24,25 @@ func RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/passwords/decrypt", DecryptPasswordHandler)
 	mux.HandleFunc("/change-password", ChangePasswordHandler)
 	mux.HandleFunc("/admin", AdminHandler)
+
+	// Mobile API endpoints (JSON)
+	mux.HandleFunc("/api/v1/login", APILoginHandler)
+	mux.HandleFunc("/api/v1/signup", APISignupHandler)
+	mux.HandleFunc("/api/v1/passwords", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			APIListPasswordsHandler(w, r)
+		case http.MethodPost:
+			APIAddPasswordHandler(w, r)
+		case http.MethodPut:
+			APIUpdatePasswordHandler(w, r)
+		case http.MethodDelete:
+			APIDeletePasswordHandler(w, r)
+		default:
+			sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: "Method not allowed"})
+		}
+	})
+	mux.HandleFunc("/api/v1/passwords/decrypt", APIDecryptPasswordHandler)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,266 @@
+package handlers
+
+import (
+	"encoding/base64"
+	"encoding/json"
+	"net/http"
+	"stockex/auth"
+	"stockex/crypto"
+	"stockex/db"
+	"stockex/models"
+)
+
+type APIResponse struct {
+	Status  string      `json:"status"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+func sendJSONResponse(w http.ResponseWriter, status int, response APIResponse) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(response)
+}
+
+func getAPISession(r *http.Request) (auth.APISession, bool) {
+	token := r.Header.Get("X-API-Token")
+	if token == "" {
+		return auth.APISession{}, false
+	}
+	return auth.GetAPISession(token)
+}
+
+func APILoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: "Method not allowed"})
+		return
+	}
+
+	var input struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	var user struct {
+		ID           int
+		Username     string
+		PasswordHash string
+		Role         string
+		Salt         string
+	}
+	err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE username = ?", input.Username).
+		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
+
+	if err != nil || !db.CheckPasswordHash(input.Password, user.PasswordHash) {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Invalid username or password"})
+		return
+	}
+
+	saltBytes, _ := base64.StdEncoding.DecodeString(user.Salt)
+	masterKey := crypto.DeriveKey(input.Password, saltBytes)
+
+	token := auth.CreateAPIToken(user.ID, user.Role, masterKey)
+
+	sendJSONResponse(w, http.StatusOK, APIResponse{
+		Status: "success",
+		Data: map[string]interface{}{
+			"token":    token,
+			"user_id":  user.ID,
+			"username": user.Username,
+			"role":     user.Role,
+		},
+	})
+}
+
+func APISignupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		sendJSONResponse(w, http.StatusMethodNotAllowed, APIResponse{Status: "error", Message: "Method not allowed"})
+		return
+	}
+
+	var input struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	hashedPassword, _ := db.HashPassword(input.Password)
+	salt, _ := db.GenerateSalt()
+	result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", input.Username, hashedPassword, salt)
+	if err != nil {
+		sendJSONResponse(w, http.StatusConflict, APIResponse{Status: "error", Message: "Username already exists"})
+		return
+	}
+
+	id, _ := result.LastInsertId()
+	saltBytes, _ := base64.StdEncoding.DecodeString(salt)
+	masterKey := crypto.DeriveKey(input.Password, saltBytes)
+
+	token := auth.CreateAPIToken(int(id), "user", masterKey)
+
+	sendJSONResponse(w, http.StatusCreated, APIResponse{
+		Status: "success",
+		Data: map[string]interface{}{
+			"token":    token,
+			"user_id":  id,
+			"username": input.Username,
+		},
+	})
+}
+
+func APIListPasswordsHandler(w http.ResponseWriter, r *http.Request) {
+	session, ok := getAPISession(r)
+	if !ok {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	rows, err := db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", session.UserID)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var passwords []models.PasswordEntry
+	for rows.Next() {
+		var p models.PasswordEntry
+		if err := rows.Scan(&p.ID, &p.Site, &p.Username, &p.EncryptedPassword, &p.Notes); err != nil {
+			continue
+		}
+		passwords = append(passwords, p)
+	}
+
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Data: passwords})
+}
+
+func APIAddPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	session, ok := getAPISession(r)
+	if !ok {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	var input struct {
+		Site     string `json:"site"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Notes    string `json:"notes"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	encrypted, err := crypto.Encrypt(input.Password, session.MasterKey)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Encryption error"})
+		return
+	}
+
+	result, err := db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
+		session.UserID, input.Site, input.Username, encrypted, input.Notes)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		return
+	}
+
+	id, _ := result.LastInsertId()
+	sendJSONResponse(w, http.StatusCreated, APIResponse{Status: "success", Data: map[string]int64{"id": id}})
+}
+
+func APIUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	session, ok := getAPISession(r)
+	if !ok {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	var input struct {
+		ID       int    `json:"id"`
+		Site     string `json:"site"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Notes    string `json:"notes"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	encrypted, err := crypto.Encrypt(input.Password, session.MasterKey)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Encryption error"})
+		return
+	}
+
+	_, err = db.DB.Exec("UPDATE passwords SET site = ?, username = ?, encrypted_password = ?, notes = ? WHERE id = ? AND user_id = ?",
+		input.Site, input.Username, encrypted, input.Notes, input.ID, session.UserID)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		return
+	}
+
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: "Password updated"})
+}
+
+func APIDeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	session, ok := getAPISession(r)
+	if !ok {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	var input struct {
+		ID int `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	_, err := db.DB.Exec("DELETE FROM passwords WHERE id = ? AND user_id = ?", input.ID, session.UserID)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		return
+	}
+
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Message: "Password deleted"})
+}
+
+func APIDecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	session, ok := getAPISession(r)
+	if !ok {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: "Unauthorized"})
+		return
+	}
+
+	var input struct {
+		EncryptedPassword string `json:"encrypted_password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: "Invalid request body"})
+		return
+	}
+
+	decrypted, err := crypto.Decrypt(input.EncryptedPassword, session.MasterKey)
+	if err != nil {
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: "Decryption error"})
+		return
+	}
+
+	sendJSONResponse(w, http.StatusOK, APIResponse{Status: "success", Data: map[string]string{"decrypted_password": decrypted}})
+}
