@@ -3,8 +3,8 @@ package i18n
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ var DefaultLang = "en"
 func LoadTranslations(path string) error {
 	files := []string{"en", "fr"}
 	for _, lang := range files {
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.json", path, lang))
+		data, err := os.ReadFile(fmt.Sprintf("%s/%s.json", path, lang))
 		if err != nil {
 			return err
 		}

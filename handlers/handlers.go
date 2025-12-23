@@ -54,7 +54,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	renderTemplate(w, r, "index.html", map[string]interface{}{"AppName": config.AppConfig.AppName})
+	renderTemplate(w, r, "index.html", map[string]any{"AppName": config.AppConfig.AppName})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +125,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	renderTemplate(w, r, "dashboard.html", map[string]interface{}{
+	renderTemplate(w, r, "dashboard.html", map[string]any{
 		"IsAdmin": auth.IsAdmin(r),
 		"AppName": config.AppConfig.AppName,
 	})
@@ -156,7 +156,7 @@ func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
 		passwords = append(passwords, p)
 	}
 
-	renderTemplate(w, r, "passwords.html", map[string]interface{}{"Passwords": passwords, "IsAdmin": auth.IsAdmin(r)})
+	renderTemplate(w, r, "passwords.html", map[string]any{"Passwords": passwords, "IsAdmin": auth.IsAdmin(r)})
 }
 
 func AddPasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -316,10 +316,10 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 		users = append(users, u)
 	}
 
-	renderTemplate(w, r, "admin.html", map[string]interface{}{"Users": users, "IsAdmin": true})
+	renderTemplate(w, r, "admin.html", map[string]any{"Users": users, "IsAdmin": true})
 }
 
-func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data interface{}) {
+func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data any) {
 	lang := i18n.DetectLanguage(r)
 
 	funcMap := template.FuncMap{
@@ -335,13 +335,13 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data in
 	}
 
 	// If data is a map, ensure AppName and Lang are there
-	if m, ok := data.(map[string]interface{}); ok {
+	if m, ok := data.(map[string]any); ok {
 		if _, exists := m["AppName"]; !exists {
 			m["AppName"] = config.AppConfig.AppName
 		}
 		m["Lang"] = lang
 	} else if data == nil {
-		data = map[string]interface{}{
+		data = map[string]any{
 			"AppName": config.AppConfig.AppName,
 			"Lang":    lang,
 		}

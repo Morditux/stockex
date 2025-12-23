@@ -12,9 +12,9 @@ import (
 )
 
 type APIResponse struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
 }
 
 func sendJSONResponse(w http.ResponseWriter, status int, response APIResponse) {
@@ -70,7 +70,7 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	sendJSONResponse(w, http.StatusOK, APIResponse{
 		Status: "success",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"token":    token,
 			"user_id":  user.ID,
 			"username": user.Username,
@@ -112,7 +112,7 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	sendJSONResponse(w, http.StatusCreated, APIResponse{
 		Status: "success",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"token":    token,
 			"user_id":  id,
 			"username": input.Username,
