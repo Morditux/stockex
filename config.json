@@ -1,0 +1,6 @@
+{
+    "app_name": "StockEx",
+    "listen_ip": "0.0.0.0",
+    "listen_port": 8080,
+    "session_key": "super-secret-session-key-change-me"
+}

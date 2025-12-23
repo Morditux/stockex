@@ -1,0 +1,43 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.AppName}} - Password Manager</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dark-mode">
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">{{.AppName}}</a>
+            <div class="nav-links">
+                {{if .}}
+                <a href="/dashboard">Dashboard</a>
+                {{if .IsAdmin}}
+                <a href="/admin">Admin</a>
+                {{end}}
+                <a href="/logout">Logout</a>
+                {{else}}
+                <a href="/login">Login</a>
+                <a href="/signup">Signup</a>
+                {{end}}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {{template "content" .}}
+    </main>
+
+    <div id="toast-container"></div>
+</body>
+
+</html>
+{{end}}

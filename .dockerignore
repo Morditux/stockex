@@ -1,0 +1,7 @@
+.git
+.gemini
+.agent
+*.db
+stockex
+Dockerfile
+.dockerignore

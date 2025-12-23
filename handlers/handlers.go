@@ -1,0 +1,313 @@
+package handlers
+
+import (
+	"encoding/base64"
+	"html/template"
+	"net/http"
+	"stockex/auth"
+	"stockex/config"
+	"stockex/crypto"
+	"stockex/db"
+	"stockex/models"
+)
+
+func RegisterHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/", IndexHandler)
+	mux.HandleFunc("/login", LoginHandler)
+	mux.HandleFunc("/signup", SignupHandler)
+	mux.HandleFunc("/logout", LogoutHandler)
+	mux.HandleFunc("/dashboard", DashboardHandler)
+	mux.HandleFunc("/passwords", PasswordsHandler)
+	mux.HandleFunc("/passwords/add", AddPasswordHandler)
+	mux.HandleFunc("/passwords/delete", DeletePasswordHandler)
+	mux.HandleFunc("/passwords/update", UpdatePasswordHandler)
+	mux.HandleFunc("/passwords/decrypt", DecryptPasswordHandler)
+	mux.HandleFunc("/change-password", ChangePasswordHandler)
+	mux.HandleFunc("/admin", AdminHandler)
+}
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	if auth.GetUserID(r) != 0 {
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+	renderTemplate(w, "index.html", map[string]interface{}{"AppName": config.AppConfig.AppName})
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		var user struct {
+			ID           int
+			Username     string
+			PasswordHash string
+			Role         string
+			Salt         string
+		}
+		err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE username = ?", username).
+			Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
+
+		if err != nil || !db.CheckPasswordHash(password, user.PasswordHash) {
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte("Invalid username or password"))
+			return
+		}
+
+		saltBytes, _ := base64.StdEncoding.DecodeString(user.Salt)
+		masterKey := crypto.DeriveKey(password, saltBytes)
+
+		auth.SetSession(w, r, user.ID, user.Role, masterKey)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+	renderTemplate(w, "login.html", nil)
+}
+
+func SignupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		hashedPassword, _ := db.HashPassword(password)
+		salt, _ := db.GenerateSalt()
+		result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", username, hashedPassword, salt)
+		if err != nil {
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte("Username already exists"))
+			return
+		}
+
+		id, _ := result.LastInsertId()
+		saltBytes, _ := base64.StdEncoding.DecodeString(salt)
+		masterKey := crypto.DeriveKey(password, saltBytes)
+
+		auth.SetSession(w, r, int(id), "user", masterKey)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+	renderTemplate(w, "signup.html", nil)
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	auth.ClearSession(w, r)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	renderTemplate(w, "dashboard.html", map[string]interface{}{
+		"IsAdmin": auth.IsAdmin(r),
+		"AppName": config.AppConfig.AppName,
+	})
+}
+
+func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	rows, err := db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var passwords []models.PasswordEntry
+	for rows.Next() {
+		var p models.PasswordEntry
+		if err := rows.Scan(&p.ID, &p.Site, &p.Username, &p.EncryptedPassword, &p.Notes); err != nil {
+			continue
+		}
+		// We decrypt on demand or show it as encrypted?
+		// For now, let's keep encrypted and decrypt in the UI or fetch via JS
+		passwords = append(passwords, p)
+	}
+
+	renderTemplate(w, "passwords.html", map[string]interface{}{"Passwords": passwords, "IsAdmin": auth.IsAdmin(r)})
+}
+
+func AddPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	masterKey := auth.GetMasterKey(r)
+	if userID == 0 || masterKey == nil || r.Method != http.MethodPost {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	site := r.FormValue("site")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	notes := r.FormValue("notes")
+
+	encrypted, err := crypto.Encrypt(password, masterKey)
+	if err != nil {
+		http.Error(w, "Encryption error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
+		userID, site, username, encrypted, notes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func DeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	if userID == 0 || r.Method != http.MethodPost {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	id := r.FormValue("id")
+	_, err := db.DB.Exec("DELETE FROM passwords WHERE id = ? AND user_id = ?", id, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Trigger", "passwordChanged")
+	w.WriteHeader(http.StatusOK)
+}
+
+func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	masterKey := auth.GetMasterKey(r)
+	if userID == 0 || masterKey == nil || r.Method != http.MethodPost {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	id := r.FormValue("id")
+	site := r.FormValue("site")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	notes := r.FormValue("notes")
+
+	encrypted, err := crypto.Encrypt(password, masterKey)
+	if err != nil {
+		http.Error(w, "Encryption error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.DB.Exec("UPDATE passwords SET site = ?, username = ?, encrypted_password = ?, notes = ? WHERE id = ? AND user_id = ?",
+		site, username, encrypted, notes, id, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func DecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	masterKey := auth.GetMasterKey(r)
+	if userID == 0 || masterKey == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	encrypted := r.URL.Query().Get("p")
+	if encrypted == "" {
+		http.Error(w, "Missing password", http.StatusBadRequest)
+		return
+	}
+
+	decrypted, err := crypto.Decrypt(encrypted, masterKey)
+	if err != nil {
+		http.Error(w, "Decryption error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(decrypted))
+}
+
+func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	if userID == 0 || r.Method != http.MethodPost {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	newPassword := r.FormValue("new_password")
+	if newPassword == "" {
+		w.Header().Set("HX-Retarget", "#password-error")
+		w.Write([]byte("Password cannot be empty"))
+		return
+	}
+
+	hashedPassword, _ := db.HashPassword(newPassword)
+	salt, _ := db.GenerateSalt()
+	_, err := db.DB.Exec("UPDATE users SET password_hash = ?, salt = ? WHERE id = ?", hashedPassword, salt, userID)
+	if err != nil {
+		w.Header().Set("HX-Retarget", "#password-error")
+		w.Write([]byte("Error updating password"))
+		return
+	}
+
+	saltBytes, _ := base64.StdEncoding.DecodeString(salt)
+	masterKey := crypto.DeriveKey(newPassword, saltBytes)
+	role := "user"
+	if auth.IsAdmin(r) {
+		role = "admin"
+	}
+	auth.SetSession(w, r, userID, role, masterKey)
+
+	w.Header().Set("HX-Trigger", "passwordUpdated")
+	w.WriteHeader(http.StatusOK)
+}
+
+func AdminHandler(w http.ResponseWriter, r *http.Request) {
+	if !auth.IsAdmin(r) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	rows, err := db.DB.Query("SELECT id, username, role, created_at FROM users")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt); err != nil {
+			continue
+		}
+		users = append(users, u)
+	}
+
+	renderTemplate(w, "admin.html", map[string]interface{}{"Users": users, "IsAdmin": true})
+}
+
+func renderTemplate(w http.ResponseWriter, name string, data interface{}) {
+	tmpl, err := template.ParseFiles("templates/layout.html", "templates/"+name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// If data is a map, ensure AppName is there
+	if m, ok := data.(map[string]interface{}); ok {
+		if _, exists := m["AppName"]; !exists {
+			m["AppName"] = config.AppConfig.AppName
+		}
+	}
+
+	tmpl.ExecuteTemplate(w, "layout", data)
+}
