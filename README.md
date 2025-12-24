@@ -9,6 +9,7 @@ StockEx is a premium, secure, and fast password manager built with **Go**, **HTM
 - **HTMX Powered**: Smooth, single-page experience without full page reloads.
 - **Admin Panel**: Manage users and roles directly from the application.
 - **Chrome Import**: Easily import your passwords from Chrome CSV exports with automatic deduplication.
+- **CSV Export**: Export your passwords securely in CSV format.
 - **UI Enhancements**: Modern error modals and password tooltips for a premium experience.
 - **Mobile Optimized**: Responsive design tested for various screen sizes.
 - **Multi-language Support**: Fully internationalized UI (English & French supported).

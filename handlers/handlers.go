@@ -26,6 +26,7 @@ func RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/passwords/update", UpdatePasswordHandler)
 	mux.HandleFunc("/passwords/decrypt", DecryptPasswordHandler)
 	mux.HandleFunc("/passwords/import", ImportPasswordsHandler)
+	mux.HandleFunc("/passwords/export", ExportPasswordsHandler)
 	mux.HandleFunc("/change-password", ChangePasswordHandler)
 	mux.HandleFunc("/admin", AdminHandler)
 
@@ -419,5 +420,52 @@ func ImportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 
 		_, err = db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
 			userID, site, username, encrypted, notes)
+	}
+}
+
+func ExportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := auth.GetUserID(r)
+	masterKey := auth.GetMasterKey(r)
+	if userID == 0 || masterKey == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	rows, err := db.DB.Query("SELECT site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"passwords.csv\"")
+
+	writer := csv.NewWriter(w)
+	defer writer.Flush()
+
+	// Write header
+	writer.Write([]string{"name", "url", "username", "password", "note"})
+
+	for rows.Next() {
+		var site, username, encrypted, notes string
+		if err := rows.Scan(&site, &username, &encrypted, &notes); err != nil {
+			continue
+		}
+
+		decrypted, err := crypto.Decrypt(encrypted, masterKey)
+		if err != nil {
+			// In case of decryption error, we might want to skip or write empty/error
+			// For now, let's write an empty password or log it
+			decrypted = ""
+		}
+
+		// Map to Chrome format: name (site), url (site), username, password, note
+		writer.Write([]string{site, site, username, decrypted, notes})
 	}
 }
