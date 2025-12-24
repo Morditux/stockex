@@ -12,6 +12,8 @@ import (
 	"stockex/db"
 	"stockex/i18n"
 	"stockex/models"
+
+	"github.com/gorilla/csrf"
 )
 
 func RegisterHandlers(mux *http.ServeMux) {
@@ -335,16 +337,21 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data an
 		return
 	}
 
+	// Prepare CSRF field
+	csrfField := csrf.TemplateField(r)
+
 	// If data is a map, ensure AppName and Lang are there
 	if m, ok := data.(map[string]any); ok {
 		if _, exists := m["AppName"]; !exists {
 			m["AppName"] = config.AppConfig.AppName
 		}
 		m["Lang"] = lang
+		m["csrfField"] = csrfField
 	} else if data == nil {
 		data = map[string]any{
-			"AppName": config.AppConfig.AppName,
-			"Lang":    lang,
+			"AppName":   config.AppConfig.AppName,
+			"Lang":      lang,
+			"csrfField": csrfField,
 		}
 	}
 

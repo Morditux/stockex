@@ -20,6 +20,7 @@
     <div class="modal-content">
         <h2>{{T "AddNewPassword"}}</h2>
         <form hx-post="/passwords/add" hx-swap="none">
+            {{ .csrfField }}
             <div class="form-group">
                 <label>{{T "SiteService"}}</label>
                 <input type="text" name="site" required placeholder="{{T " EGGoogle"}}">
@@ -49,6 +50,7 @@
     <div class="modal-content">
         <h2>{{T "EditPassword"}}</h2>
         <form hx-post="/passwords/update" hx-swap="none">
+            {{ .csrfField }}
             <input type="hidden" name="id" id="edit-id">
             <div class="form-group">
                 <label>{{T "SiteService"}}</label>
@@ -80,6 +82,7 @@
         <h2>{{T "ChangeAccountPassword"}}</h2>
         <form hx-post="/change-password" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) hideChangePasswordModal()">
+            {{ .csrfField }}
             <div class="form-group">
                 <label>{{T "NewPassword"}}</label>
                 <input type="password" name="new_password" required placeholder="{{T " EnterPassword"}}">
@@ -101,6 +104,7 @@
         <p style="margin-bottom: 1.5rem; color: var(--text-muted);">{{T "ImportInstructions"}}</p>
         <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
+            {{ .csrfField }}
             <div class="form-group">
                 <input type="file" name="csv_file" accept=".csv" required>
             </div>
