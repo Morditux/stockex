@@ -31,6 +31,7 @@
     "ChangePassword": "Change Password",
     "WelcomeToVault": "Welcome to your Vault",
     "ImportCSV": "Import CSV",
+    "ExportCSV": "Export CSV",
     "LoadingPasswords": "Loading your passwords...",
     "AddNewPassword": "Add New Password",
     "SiteService": "Site / Service",

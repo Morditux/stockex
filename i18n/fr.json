@@ -51,6 +51,7 @@
     "ChangePassword": "Changer le mot de passe",
     "WelcomeToVault": "Bienvenue dans votre coffre-fort",
     "ImportCSV": "Importer CSV",
+    "ExportCSV": "Exporter CSV",
     "LoadingPasswords": "Chargement de vos mots de passe...",
     "AddNewPassword": "Ajouter un nouveau mot de passe",
     "SiteService": "Site / Service",
