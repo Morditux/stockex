@@ -2,6 +2,7 @@
 <div class="form-container">
     <h2>{{T "WelcomeBack"}}</h2>
     <form hx-post="/login" hx-swap="none">
+        {{ .csrfField }}
         <div class="form-group">
             <label for="username">{{T "Username"}}</label>
             <input type="text" id="username" name="username" required placeholder="{{T " EnterUsername"}}">

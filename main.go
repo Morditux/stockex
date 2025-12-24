@@ -9,6 +9,8 @@ import (
 	"stockex/db"
 	"stockex/handlers"
 	"stockex/i18n"
+
+	"github.com/gorilla/csrf"
 )
 
 func CORSMiddleware(next http.Handler) http.Handler {
@@ -58,7 +60,17 @@ func main() {
 
 	addr := fmt.Sprintf("%s:%d", config.AppConfig.ListenIP, config.AppConfig.ListenPort)
 	log.Printf("Server starting on %s (%s)", addr, config.AppConfig.AppName)
-	if err := http.ListenAndServe(addr, CORSMiddleware(mux)); err != nil {
+
+	// CSRF Protection
+	// We need a 32-byte key. Using session key for now, assuming it's suitable.
+	// In production, this should be a separate key.
+	csrfMiddleware := csrf.Protect(
+		[]byte(config.AppConfig.SessionKey),
+		csrf.Secure(false), // Set to true in production with HTTPS
+		csrf.Path("/"),
+	)
+
+	if err := http.ListenAndServe(addr, CORSMiddleware(csrfMiddleware(mux))); err != nil {
 		log.Fatal(err)
 	}
 }
