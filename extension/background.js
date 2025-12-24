@@ -15,9 +15,8 @@ async function fetchCredentials(domain) {
     }
 
     try {
-        // Fetch all passwords and filter by domain on backend or here
-        // For simplicity, we fetch all and filter here for now
-        const response = await fetch(`${data.serverUrl}/api/v1/passwords`, {
+        // Fetch passwords filtered by domain from the backend
+        const response = await fetch(`${data.serverUrl}/api/v1/passwords?domain=${encodeURIComponent(domain)}`, {
             headers: { 'X-API-Token': data.token }
         });
 
@@ -26,11 +25,7 @@ async function fetchCredentials(domain) {
             return { error: result.message };
         }
 
-        // Search for matching domain in site name
-        const matches = result.data.filter(p =>
-            p.site.toLowerCase().includes(domain.toLowerCase()) ||
-            domain.toLowerCase().includes(p.site.toLowerCase())
-        );
+        const matches = result.data;
 
         if (matches.length > 0) {
             // Get the first match and decrypt it

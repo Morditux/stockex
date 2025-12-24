@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
@@ -128,7 +129,36 @@ func APIListPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", session.UserID)
+	domain := r.URL.Query().Get("domain")
+	var rows *sql.Rows
+	var err error
+
+	if domain != "" {
+		// Filter by domain: site contains domain OR domain contains site
+		// SQLite LIKE is case-insensitive for ASCII
+		// We use a simple LIKE for "site contains domain"
+		// For "domain contains site", it is harder in SQL.
+		// Given "google.com" (site) and "www.google.com" (domain), site is in domain.
+		// Given "google.com" (site) and "google" (domain), domain is in site.
+
+		// Let's implement what is commonly expected: site contains the search term.
+		// If I search "google", I find "google.com".
+		// If I search "www.google.com", I might NOT find "google.com" if I only check site LIKE %domain%.
+		// "google.com" LIKE "%www.google.com%" -> False.
+
+		// The JS implementation did:
+		// p.site.includes(domain) || domain.includes(p.site)
+
+		// To replicate "domain includes p.site", we can use:
+		// WHERE ? LIKE '%' || site || '%'
+		// But verify if site is not empty string, otherwise it matches everything.
+
+		rows, err = db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ? AND (site LIKE ? OR ? LIKE '%' || site || '%')",
+			session.UserID, "%"+domain+"%", domain)
+	} else {
+		rows, err = db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", session.UserID)
+	}
+
 	if err != nil {
 		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
 		return
