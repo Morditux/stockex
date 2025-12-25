@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"log"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
@@ -54,14 +56,23 @@ func InitDB(dataSourceName string) {
 	}
 
 	if count == 0 {
-		// Default admin: admin / admin123
-		hashedPassword, _ := HashPassword("admin123")
+		// Default admin
+		adminPassword := os.Getenv("STOCKEX_ADMIN_PASSWORD")
+		if adminPassword == "" {
+			randomBytes := make([]byte, 16)
+			if _, err := rand.Read(randomBytes); err != nil {
+				log.Fatalf("Error generating random password: %v", err)
+			}
+			adminPassword = hex.EncodeToString(randomBytes)
+		}
+
+		hashedPassword, _ := HashPassword(adminPassword)
 		salt, _ := GenerateSalt()
 		_, err = DB.Exec("INSERT INTO users (username, password_hash, role, salt) VALUES (?, ?, ?, ?)", "admin", hashedPassword, "admin", salt)
 		if err != nil {
 			log.Fatalf("Error creating default admin: %v", err)
 		}
-		log.Println("Default admin created: admin / admin123")
+		log.Printf("Default admin created: admin / %s", adminPassword)
 	}
 
 	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS api_sessions (
