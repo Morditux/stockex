@@ -6,10 +6,11 @@ import (
 )
 
 type Config struct {
-	AppName    string `json:"app_name"`
-	ListenIP   string `json:"listen_ip"`
-	ListenPort int    `json:"listen_port"`
-	SessionKey string `json:"session_key"`
+	AppName        string   `json:"app_name"`
+	ListenIP       string   `json:"listen_ip"`
+	ListenPort     int      `json:"listen_port"`
+	SessionKey     string   `json:"session_key"`
+	AllowedOrigins []string `json:"allowed_origins"`
 }
 
 var AppConfig Config

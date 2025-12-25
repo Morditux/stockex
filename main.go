@@ -15,13 +15,33 @@ import (
 
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow any origin for the API as it's an extension/mobile use case
-		// In production, you might want to be more restrictive
+		// Restrict allowed origins based on configuration
 		origin := r.Header.Get("Origin")
-		if origin != "" {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-		} else {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+		allowed := false
+
+		// Check if any origin is allowed or if the specific origin is allowed
+		for _, o := range config.AppConfig.AllowedOrigins {
+			if o == "*" {
+				allowed = true
+				if origin != "" {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+				} else {
+					w.Header().Set("Access-Control-Allow-Origin", "*")
+				}
+				break
+			}
+			if o == origin {
+				allowed = true
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
+
+		if !allowed && origin != "" {
+			// If not allowed, we don't set the Access-Control-Allow-Origin header,
+			// which effectively blocks the request from the browser's perspective.
+			// Optionally, we could return a 403 here, but standard CORS behavior
+			// is usually just omitting the header.
 		}
 
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
