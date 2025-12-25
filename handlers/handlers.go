@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"stockex/auth"
 	"stockex/config"
@@ -473,7 +474,8 @@ func ExportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// In case of decryption error, we might want to skip or write empty/error
 			// For now, let's write an empty password or log it
-			decrypted = ""
+			log.Printf("Error decrypting password for site: %s, user: %s, error: %v", site, username, err)
+			continue
 		}
 
 		// Map to Chrome format: name (site), url (site), username, password, note
