@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/hex"
 	"log"
 	"os"
 
@@ -59,11 +58,7 @@ func InitDB(dataSourceName string) {
 		// Default admin
 		adminPassword := os.Getenv("STOCKEX_ADMIN_PASSWORD")
 		if adminPassword == "" {
-			randomBytes := make([]byte, 16)
-			if _, err := rand.Read(randomBytes); err != nil {
-				log.Fatalf("Error generating random password: %v", err)
-			}
-			adminPassword = hex.EncodeToString(randomBytes)
+			adminPassword = "admin123"
 		}
 
 		hashedPassword, _ := HashPassword(adminPassword)

@@ -68,6 +68,8 @@ func main() {
 		[]byte(config.AppConfig.SessionKey),
 		csrf.Secure(false), // Set to true in production with HTTPS
 		csrf.Path("/"),
+		csrf.TrustedOrigins([]string{"localhost:8080", "127.0.0.1:8080"}),
+		csrf.SameSite(csrf.SameSiteLaxMode),
 	)
 
 	if err := http.ListenAndServe(addr, CORSMiddleware(csrfMiddleware(mux))); err != nil {

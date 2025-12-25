@@ -56,7 +56,7 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 		Role         string
 		Salt         string
 	}
-	err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE username = ?", input.Username).
+	err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE LOWER(username) = LOWER(?)", input.Username).
 		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 
 	if err != nil || !db.CheckPasswordHash(input.Password, user.PasswordHash) {
