@@ -46,6 +46,8 @@
     "ImportChromePasswords": "Import Chrome Passwords",
     "ImportInstructions": "Upload a CSV file exported from Chrome (name, url, username, password, note).",
     "ImportNow": "Import Now",
+    "Show": "Show",
+    "Hide": "Hide",
     "Copy": "Copy",
     "Edit": "Edit",
     "NoPasswordsYet": "No passwords stored yet. Click \"+ Add Password\" to get started.",

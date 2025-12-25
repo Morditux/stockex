@@ -154,8 +154,6 @@ func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&p.ID, &p.Site, &p.Username, &p.EncryptedPassword, &p.Notes); err != nil {
 			continue
 		}
-		// We decrypt on demand or show it as encrypted?
-		// For now, let's keep encrypted and decrypt in the UI or fetch via JS
 		passwords = append(passwords, p)
 	}
 

@@ -65,6 +65,8 @@
     "ChangeAccountPassword": "Changer le mot de passe du compte",
     "ImportChromePasswords": "Importer les mots de passe Chrome",
     "ImportInstructions": "Téléchargez un fichier CSV exporté depuis Chrome (nom, url, nom d'utilisateur, mot de passe, note).",
+    "Show": "Afficher",
+    "Hide": "Masquer",
     "Copy": "Copier",
     "Edit": "Modifier",
     "NoPasswordsYet": "Aucun mot de passe enregistré. Cliquez sur \"+ Ajouter un mot de passe\" pour commencer.",
