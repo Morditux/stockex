@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -22,6 +23,19 @@ func LoadConfig(path string) error {
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&AppConfig)
-	return err
+	if err := decoder.Decode(&AppConfig); err != nil {
+		return err
+	}
+
+	// Override with environment variable if present
+	if envKey := os.Getenv("STOCKEX_SESSION_KEY"); envKey != "" {
+		AppConfig.SessionKey = envKey
+	}
+
+	// Security Warning for default key
+	if AppConfig.SessionKey == "super-secret-session-key-change-me" {
+		log.Println("WARNING: Using default insecure session key. Set STOCKEX_SESSION_KEY environment variable in production!")
+	}
+
+	return nil
 }
