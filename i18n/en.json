@@ -74,5 +74,10 @@
     "DecryptionErrorAPI": "Decryption error",
     "ErrorUploadingFile": "Error uploading file",
     "EmptyOrInvalidCSV": "Empty or invalid CSV",
-    "PasswordUpdatedSuccessfully": "Password updated successfully!"
+    "PasswordUpdatedSuccessfully": "Password updated successfully!",
+    "ConfirmDelete": "Are you sure you want to delete this password?",
+    "ShowPasswordFor": "Show password for %s",
+    "CopyPasswordFor": "Copy password for %s",
+    "EditPasswordFor": "Edit password for %s",
+    "DeletePasswordFor": "Delete password for %s"
 }
