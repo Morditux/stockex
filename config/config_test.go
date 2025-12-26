@@ -26,6 +26,9 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatalf("Failed to close temporary file: %v", err)
 	}
 
+	// Ensure no env var set initially
+	os.Unsetenv("STOCKEX_SESSION_KEY")
+
 	// Test loading the config
 	err = LoadConfig(tmpfile.Name())
 	if err != nil {
@@ -62,5 +65,48 @@ func TestLoadConfigInvalidJSON(t *testing.T) {
 	err := LoadConfig(tmpfile.Name())
 	if err == nil {
 		t.Error("LoadConfig with invalid JSON should have failed")
+	}
+}
+
+func TestLoadConfigFromEnv(t *testing.T) {
+	// Create a temporary config file
+	configContent := `{
+		"app_name": "TestApp",
+		"listen_ip": "127.0.0.1",
+		"listen_port": 9090,
+		"session_key": "default-key"
+	}`
+	tmpfile, err := os.CreateTemp("", "config_env.json")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	if _, err := tmpfile.Write([]byte(configContent)); err != nil {
+		t.Fatalf("Failed to write to temporary file: %v", err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Fatalf("Failed to close temporary file: %v", err)
+	}
+
+	// Set Env Var
+	expectedKey := "secure-env-key"
+	os.Setenv("STOCKEX_SESSION_KEY", expectedKey)
+	defer os.Unsetenv("STOCKEX_SESSION_KEY")
+
+	// Test loading the config
+	err = LoadConfig(tmpfile.Name())
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	// Verify the session key is taken from ENV
+	if AppConfig.SessionKey != expectedKey {
+		t.Errorf("Expected SessionKey '%s', got '%s'", expectedKey, AppConfig.SessionKey)
+	}
+
+	// Verify other fields still load correctly
+	if AppConfig.AppName != "TestApp" {
+		t.Errorf("Expected AppName 'TestApp', got '%s'", AppConfig.AppName)
 	}
 }
