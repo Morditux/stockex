@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.23-bookworm AS builder
+FROM golang:1.24-bookworm AS builder
 
 # Install build dependencies for CGO and SQLite
 RUN apt-get update && apt-get install -y gcc libc6-dev sqlite3 libsqlite3-dev
