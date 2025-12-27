@@ -478,3 +478,15 @@ p a {
         text-align: center;
     }
 }
+/* Loading State Utilities */
+.btn-loading-indicator {
+    display: none;
+}
+
+.htmx-request .btn-loading-indicator {
+    display: inline;
+}
+
+.htmx-request .btn-default-text {
+    display: none;
+}

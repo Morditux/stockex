@@ -19,7 +19,9 @@
 <div id="add-password-modal" class="modal">
     <div class="modal-content">
         <h2>{{T "AddNewPassword"}}</h2>
-        <form hx-post="/passwords/add" hx-swap="none">
+        <form hx-post="/passwords/add" hx-swap="none"
+              hx-disabled-elt="find button[type='submit']"
+              hx-on::after-request="if(event.detail.successful) hideAddModal();">
             {{ .csrfField }}
             <div class="form-group">
                 <label>{{T "SiteService"}}</label>
@@ -39,7 +41,10 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="hideAddModal()">{{T "Cancel"}}</button>
-                <button type="submit" class="btn btn-primary">{{T "SavePassword"}}</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-default-text">{{T "SavePassword"}}</span>
+                    <span class="btn-loading-indicator">{{T "Saving"}}</span>
+                </button>
             </div>
         </form>
     </div>
@@ -49,7 +54,9 @@
 <div id="edit-password-modal" class="modal">
     <div class="modal-content">
         <h2>{{T "EditPassword"}}</h2>
-        <form hx-post="/passwords/update" hx-swap="none">
+        <form hx-post="/passwords/update" hx-swap="none"
+              hx-disabled-elt="find button[type='submit']"
+              hx-on::after-request="if(event.detail.successful) hideEditModal();">
             {{ .csrfField }}
             <input type="hidden" name="id" id="edit-id">
             <div class="form-group">
@@ -70,7 +77,10 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="hideEditModal()">{{T "Cancel"}}</button>
-                <button type="submit" class="btn btn-primary">{{T "UpdatePassword"}}</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-default-text">{{T "UpdatePassword"}}</span>
+                    <span class="btn-loading-indicator">{{T "Updating"}}</span>
+                </button>
             </div>
         </form>
     </div>
@@ -81,7 +91,8 @@
     <div class="modal-content">
         <h2>{{T "ChangeAccountPassword"}}</h2>
         <form hx-post="/change-password" hx-swap="none"
-            hx-on::after-request="if(event.detail.successful) hideChangePasswordModal()">
+              hx-disabled-elt="find button[type='submit']"
+              hx-on::after-request="if(event.detail.successful) hideChangePasswordModal();">
             {{ .csrfField }}
             <div class="form-group">
                 <label>{{T "NewPassword"}}</label>
@@ -91,7 +102,10 @@
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="hideChangePasswordModal()">{{T
                     "Cancel"}}</button>
-                <button type="submit" class="btn btn-primary">{{T "UpdatePassword"}}</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-default-text">{{T "UpdatePassword"}}</span>
+                    <span class="btn-loading-indicator">{{T "Updating"}}</span>
+                </button>
             </div>
         </form>
     </div>
@@ -103,7 +117,8 @@
         <h2>{{T "ImportChromePasswords"}}</h2>
         <p style="margin-bottom: 1.5rem; color: var(--text-muted);">{{T "ImportInstructions"}}</p>
         <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
-            hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
+              hx-disabled-elt="find button[type='submit']"
+              hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
             {{ .csrfField }}
             <div class="form-group">
                 <input type="file" name="csv_file" accept=".csv" required>
@@ -111,7 +126,10 @@
             <div id="import-error" class="error"></div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="hideImportModal()">{{T "Cancel"}}</button>
-                <button type="submit" class="btn btn-primary">{{T "ImportNow"}}</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-default-text">{{T "ImportNow"}}</span>
+                    <span class="btn-loading-indicator">{{T "Importing"}}</span>
+                </button>
             </div>
         </form>
     </div>
