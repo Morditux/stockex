@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"os"
@@ -32,9 +34,14 @@ func LoadConfig(path string) error {
 		AppConfig.SessionKey = envKey
 	}
 
-	// Security Warning for default key
-	if AppConfig.SessionKey == "super-secret-session-key-change-me" {
-		log.Println("WARNING: Using default insecure session key. Set STOCKEX_SESSION_KEY environment variable in production!")
+	// If no key is provided or it's the placeholder, generate a secure random one
+	if AppConfig.SessionKey == "" || AppConfig.SessionKey == "CHANGE_ME_IN_PRODUCTION" {
+		log.Println("WARNING: No session key configured. Generating a random key. Sessions will be invalidated on restart.")
+		randomKey := make([]byte, 32)
+		if _, err := rand.Read(randomKey); err != nil {
+			return err
+		}
+		AppConfig.SessionKey = hex.EncodeToString(randomKey)
 	}
 
 	return nil
