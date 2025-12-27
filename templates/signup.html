@@ -11,9 +11,50 @@
             <label for="password">{{T "Password"}}</label>
             <input type="password" id="password" name="password" required placeholder="{{T " ChoosePassword"}}">
         </div>
+
+        <div class="form-group captcha-container">
+            <label>{{T "Captcha"}}</label>
+            <div class="captcha-box">
+                <img id="captcha-img" src="/captcha/{{.CaptchaID}}.png" alt="Captcha">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="reloadCaptcha()">{{T
+                    "ReloadCaptcha"}}</button>
+            </div>
+            <input type="hidden" name="captcha_id" id="captcha-id" value="{{.CaptchaID}}">
+            <input type="text" name="captcha_solution" required placeholder="{{T " EnterCaptcha"}}" autocomplete="off">
+        </div>
+
         <div id="error-message" class="error"></div>
         <button type="submit" class="btn btn-primary">{{T "Signup"}}</button>
     </form>
     <p>{{T "AlreadyHaveAccount"}} <a href="/login">{{T "Login"}}</a></p>
 </div>
+
+<script>
+    function reloadCaptcha() {
+        const captchaId = document.getElementById('captcha-id').value;
+        const captchaImg = document.getElementById('captcha-img');
+        // We can use the same ID and just append a timestamp to avoid cache, 
+        // but it's better to get a new ID if possible.
+        // Actually github.com/dchest/captcha allows reloading same ID with different image.
+        captchaImg.src = "/captcha/" + captchaId + ".png?reload=" + new Date().getTime();
+    }
+</script>
+
+<style>
+    .captcha-container {
+        margin-top: 1rem;
+    }
+
+    .captcha-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    .captcha-box img {
+        border-radius: 4px;
+        background: white;
+    }
+</style>
 {{end}}

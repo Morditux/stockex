@@ -15,6 +15,7 @@ import (
 	"stockex/i18n"
 	"stockex/models"
 
+	"github.com/dchest/captcha"
 	"github.com/gorilla/csrf"
 )
 
@@ -55,6 +56,9 @@ func RegisterHandlers(mux *http.ServeMux) {
 		}
 	})
 	mux.HandleFunc("/api/v1/passwords/decrypt", APIDecryptPasswordHandler)
+
+	// Captcha handler
+	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +114,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
+		captchaID := r.FormValue("captcha_id")
+		captchaSolution := r.FormValue("captcha_solution")
+
+		if !captcha.VerifyString(captchaID, captchaSolution) {
+			lang := i18n.DetectLanguage(r)
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte(i18n.T(lang, "InvalidCaptcha")))
+			return
+		}
+
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
@@ -131,7 +145,11 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("HX-Redirect", "/pending")
 		return
 	}
-	renderTemplate(w, r, "signup.html", nil)
+
+	data := map[string]any{
+		"CaptchaID": captcha.New(),
+	}
+	renderTemplate(w, r, "signup.html", data)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
