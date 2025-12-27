@@ -16,24 +16,13 @@
     <p>{{T "NoAccount"}} <a href="/signup">{{T "Signup"}}</a></p>
 </div>
 
-<!-- Login Error Modal -->
-<div id="errorModal" class="modal">
-    <div class="modal-content">
-        <h2 style="color: var(--error); text-align: center;">{{T "LoginFailed"}}</h2>
-        <p style="text-align: center; margin-bottom: 2rem;">{{T "InvalidCredentials"}}</p>
-        <div class="modal-actions" style="justify-content: center;">
-            <button class="btn btn-secondary" onclick="closeErrorModal()">{{T "Close"}}</button>
-        </div>
-    </div>
-</div>
-
 <script>
-    function closeErrorModal() {
-        document.getElementById('errorModal').style.display = 'none';
-    }
-
     document.body.addEventListener('loginError', function (evt) {
-        document.getElementById('errorModal').style.display = 'flex';
+        window.showModal({
+            title: '{{T "LoginFailed"}}',
+            message: '{{T "InvalidCredentials"}}',
+            primaryText: '{{T "Close"}}'
+        });
     });
 </script>
 {{end}}

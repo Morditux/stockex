@@ -9,6 +9,7 @@ type User struct {
 	Role         string    `json:"role"` // "admin" or "user"
 	Salt         string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
+	Validated    bool      `json:"validated"`
 }
 
 type PasswordEntry struct {

@@ -149,7 +149,7 @@
     }
 
     document.body.addEventListener('passwordUpdated', function () {
-        alert('{{T "PasswordUpdatedSuccessfully"}}');
+        window.showModal({ message: '{{T "PasswordUpdatedSuccessfully"}}' });
     });
 </script>
 {{end}}

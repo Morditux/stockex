@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/csv"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -31,7 +32,10 @@ func RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/passwords/import", ImportPasswordsHandler)
 	mux.HandleFunc("/passwords/export", ExportPasswordsHandler)
 	mux.HandleFunc("/change-password", ChangePasswordHandler)
+	mux.HandleFunc("/pending", PendingHandler)
 	mux.HandleFunc("/admin", AdminHandler)
+	mux.HandleFunc("/admin/users/validate", ValidateUserHandler)
+	mux.HandleFunc("/admin/users/delete", DeleteUserHandler)
 
 	// Mobile API endpoints (JSON)
 	mux.HandleFunc("/api/v1/login", APILoginHandler)
@@ -72,9 +76,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			PasswordHash string
 			Role         string
 			Salt         string
+			Validated    bool
 		}
-		err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE LOWER(username) = LOWER(?)", username).
-			Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
+		err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt, validated FROM users WHERE LOWER(username) = LOWER(?)", username).
+			Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt, &user.Validated)
 
 		if err != nil || !db.CheckPasswordHash(password, user.PasswordHash) {
 			w.Header().Set("HX-Trigger", "loginError")
@@ -92,7 +97,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		masterKey := crypto.DeriveKey(password, saltBytes)
 
 		auth.SetSession(w, r, user.ID, user.Role, masterKey)
-		w.Header().Set("HX-Redirect", "/dashboard")
+
+		if !user.Validated && user.Role != "admin" {
+			w.Header().Set("HX-Redirect", "/pending")
+		} else {
+			w.Header().Set("HX-Redirect", "/dashboard")
+		}
 		return
 	}
 	renderTemplate(w, r, "login.html", nil)
@@ -118,7 +128,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		masterKey := crypto.DeriveKey(password, saltBytes)
 
 		auth.SetSession(w, r, int(id), "user", masterKey)
-		w.Header().Set("HX-Redirect", "/dashboard")
+		w.Header().Set("HX-Redirect", "/pending")
 		return
 	}
 	renderTemplate(w, r, "signup.html", nil)
@@ -129,12 +139,31 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func PendingHandler(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserID(r)
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	renderTemplate(w, r, "pending.html", nil)
+}
+
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	userID := auth.GetUserID(r)
 	if userID == 0 {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
+
+	// Check validation
+	var validated bool
+	var role string
+	err := db.DB.QueryRow("SELECT validated, role FROM users WHERE id = ?", userID).Scan(&validated, &role)
+	if err != nil || (!validated && role != "admin") {
+		http.Redirect(w, r, "/pending", http.StatusSeeOther)
+		return
+	}
+
 	renderTemplate(w, r, "dashboard.html", map[string]any{
 		"IsAdmin": auth.IsAdmin(r),
 		"AppName": config.AppConfig.AppName,
@@ -145,6 +174,15 @@ func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
 	userID := auth.GetUserID(r)
 	if userID == 0 {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Check validation
+	var validated bool
+	var role string
+	err := db.DB.QueryRow("SELECT validated, role FROM users WHERE id = ?", userID).Scan(&validated, &role)
+	if err != nil || (!validated && role != "admin") {
+		http.Redirect(w, r, "/pending", http.StatusSeeOther)
 		return
 	}
 
@@ -308,7 +346,7 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DB.Query("SELECT id, username, role, created_at FROM users")
+	rows, err := db.DB.Query("SELECT id, username, role, created_at, validated FROM users")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -318,13 +356,53 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 	var users []models.User
 	for rows.Next() {
 		var u models.User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt, &u.Validated); err != nil {
 			continue
 		}
 		users = append(users, u)
 	}
 
 	renderTemplate(w, r, "admin.html", map[string]any{"Users": users, "IsAdmin": true})
+}
+
+func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
+	if !auth.IsAdmin(r) || r.Method != http.MethodPost {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id := r.FormValue("id")
+	_, err := db.DB.Exec("UPDATE users SET validated = 1 WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Refresh", "true")
+	w.WriteHeader(http.StatusOK)
+}
+
+func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	if !auth.IsAdmin(r) || r.Method != http.MethodPost {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	id := r.FormValue("id")
+	// Prevent deleting the last admin if possible, but for now just prevent deleting self
+	if id == fmt.Sprint(auth.GetUserID(r)) {
+		http.Error(w, "Cannot delete yourself", http.StatusBadRequest)
+		return
+	}
+
+	_, err := db.DB.Exec("DELETE FROM users WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Refresh", "true")
+	w.WriteHeader(http.StatusOK)
 }
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data any) {
@@ -352,11 +430,13 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data an
 		}
 		m["Lang"] = lang
 		m["csrfField"] = csrfField
+		m["csrfToken"] = csrf.Token(r)
 	} else if data == nil {
 		data = map[string]any{
 			"AppName":   config.AppConfig.AppName,
 			"Lang":      lang,
 			"csrfField": csrfField,
+			"csrfToken": csrf.Token(r),
 		}
 	}
 

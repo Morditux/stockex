@@ -27,7 +27,8 @@ func InitDB(dataSourceName string) {
 		password_hash TEXT NOT NULL,
 		role TEXT DEFAULT 'user',
 		salt TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		validated INTEGER DEFAULT 0
 	);
 
 	CREATE TABLE IF NOT EXISTS passwords (
@@ -47,6 +48,9 @@ func InitDB(dataSourceName string) {
 		log.Fatalf("Error creating tables: %v", err)
 	}
 
+	// Migration: Add validated column if it doesn't exist
+	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN validated INTEGER DEFAULT 0")
+
 	// Create default admin if not exists
 	var count int
 	err = DB.QueryRow("SELECT COUNT(*) FROM users WHERE role = 'admin'").Scan(&count)
@@ -63,7 +67,7 @@ func InitDB(dataSourceName string) {
 
 		hashedPassword, _ := HashPassword(adminPassword)
 		salt, _ := GenerateSalt()
-		_, err = DB.Exec("INSERT INTO users (username, password_hash, role, salt) VALUES (?, ?, ?, ?)", "admin", hashedPassword, "admin", salt)
+		_, err = DB.Exec("INSERT INTO users (username, password_hash, role, salt, validated) VALUES (?, ?, ?, ?, ?)", "admin", hashedPassword, "admin", salt, 1)
 		if err != nil {
 			log.Fatalf("Error creating default admin: %v", err)
 		}

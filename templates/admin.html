@@ -1,31 +1,120 @@
 {{define "content"}}
 <div class="admin-container">
     <h1>{{T "UserManagement"}}</h1>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>{{T "Username"}}</th>
-                <th>Role</th>
-                <th>{{T "CreatedAt"}}</th>
-                <th>{{T "Actions"}}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Users}}
-            <tr>
-                <td>{{.ID}}</td>
-                <td>{{.Username}}</td>
-                <td><span class="badge {{.Role}}">{{.Role}}</span></td>
-                <td>{{.CreatedAt.Format "2006-01-02"}}</td>
-                <td>
-                    {{if ne .Role "admin"}}
-                    <button class="btn btn-sm btn-danger">{{T "Delete"}}</button>
-                    {{end}}
-                </td>
-            </tr>
-            {{end}}
-        </tbody>
-    </table>
+
+    <div class="tabs">
+        <button class="tab-link active" onclick="openTab(event, 'pending-tab')">{{T "PendingUsers"}}</button>
+        <button class="tab-link" onclick="openTab(event, 'validated-tab')">{{T "ValidatedUsers"}}</button>
+    </div>
+
+    <div id="pending-tab" class="tab-content active">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>{{T "Username"}}</th>
+                    <th>Role</th>
+                    <th>{{T "CreatedAt"}}</th>
+                    <th>{{T "Actions"}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                {{if not .Validated}}
+                <tr>
+                    <td>{{.ID}}</td>
+                    <td>{{.Username}}</td>
+                    <td><span class="badge {{.Role}}">{{.Role}}</span></td>
+                    <td>{{.CreatedAt.Format "2006-01-02"}}</td>
+                    <td>
+                        {{if ne .Role "admin"}}
+                        <button class="btn btn-sm btn-success" hx-post="/admin/users/validate"
+                            hx-vals='{"id": "{{.ID}}"}'>{{T "Validate"}}</button>
+                        <button class="btn btn-sm btn-danger"
+                            onclick="confirmDeleteUser('{{.ID}}', '{{.Username}}')">{{T "Delete"}}</button>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="validated-tab" class="tab-content">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>{{T "Username"}}</th>
+                    <th>Role</th>
+                    <th>{{T "CreatedAt"}}</th>
+                    <th>{{T "Actions"}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                {{if .Validated}}
+                <tr>
+                    <td>{{.ID}}</td>
+                    <td>{{.Username}}</td>
+                    <td><span class="badge {{.Role}}">{{.Role}}</span></td>
+                    <td>{{.CreatedAt.Format "2006-01-02"}}</td>
+                    <td>
+                        {{if ne .Role "admin"}}
+                        <button class="btn btn-sm btn-danger"
+                            onclick="confirmDeleteUser('{{.ID}}', '{{.Username}}')">{{T "Delete"}}</button>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+                {{end}}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
+        }
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+
+        // Save active tab in localStorage
+        localStorage.setItem('adminActiveTab', tabName);
+    }
+
+    function confirmDeleteUser(id, username) {
+        window.showModal({
+            title: `{{T "ConfirmAction"}}`,
+            message: `{{T "ConfirmDeleteUser"}}` + ` (` + username + `)`,
+            isConfirm: true,
+            onConfirm: function () {
+                htmx.ajax('POST', '/admin/users/delete', {
+                    values: { id: id },
+                    swap: 'none'
+                });
+            }
+        });
+    }
+
+    // Restore active tab on load
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeTab = localStorage.getItem('adminActiveTab');
+        if (activeTab) {
+            const tabLink = document.querySelector(`[onclick*="${activeTab}"]`);
+            if (tabLink) {
+                tabLink.click();
+            }
+        }
+    });
+</script>
 {{end}}
