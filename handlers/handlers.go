@@ -206,7 +206,9 @@ func PasswordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.DB.Query("SELECT id, site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error querying passwords: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -245,7 +247,9 @@ func AddPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
 		userID, site, username, encrypted, notes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error adding password: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -262,7 +266,9 @@ func DeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	_, err := db.DB.Exec("DELETE FROM passwords WHERE id = ? AND user_id = ?", id, userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error deleting password: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -293,7 +299,9 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.DB.Exec("UPDATE passwords SET site = ?, username = ?, encrypted_password = ?, notes = ? WHERE id = ? AND user_id = ?",
 		site, username, encrypted, notes, id, userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error updating password: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -366,7 +374,9 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.DB.Query("SELECT id, username, role, created_at, validated FROM users")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error querying users: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -392,7 +402,9 @@ func ValidateUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	_, err := db.DB.Exec("UPDATE users SET validated = 1 WHERE id = ?", id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error validating user: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -415,7 +427,9 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := db.DB.Exec("DELETE FROM users WHERE id = ?", id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error deleting user: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -434,7 +448,8 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data an
 
 	tmpl, err := template.New(name).Funcs(funcMap).ParseFiles("templates/layout.html", "templates/"+name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error parsing templates: %v", err)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 
@@ -548,7 +563,9 @@ func ExportPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.DB.Query("SELECT site, username, encrypted_password, notes FROM passwords WHERE user_id = ?", userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error querying passwords for export: %v", err)
+		lang := i18n.DetectLanguage(r)
+		http.Error(w, i18n.T(lang, "InternalServerError"), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
