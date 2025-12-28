@@ -93,5 +93,6 @@
     "ShowPasswordFor": "Afficher le mot de passe pour %s",
     "CopyPasswordFor": "Copier le mot de passe pour %s",
     "EditPasswordFor": "Modifier le mot de passe pour %s",
-    "DeletePasswordFor": "Supprimer le mot de passe pour %s"
+    "DeletePasswordFor": "Supprimer le mot de passe pour %s",
+    "InternalServerError": "Erreur interne du serveur"
 }

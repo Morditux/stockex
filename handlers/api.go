@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 	"stockex/auth"
 	"stockex/crypto"
@@ -160,7 +161,8 @@ func APIListPasswordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		log.Printf("Error querying passwords (API): %v", err)
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "InternalServerError")})
 		return
 	}
 	defer rows.Close()
@@ -206,7 +208,8 @@ func APIAddPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	result, err := db.DB.Exec("INSERT INTO passwords (user_id, site, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)",
 		session.UserID, input.Site, input.Username, encrypted, input.Notes)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		log.Printf("Error adding password (API): %v", err)
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "InternalServerError")})
 		return
 	}
 
@@ -244,7 +247,8 @@ func APIUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.DB.Exec("UPDATE passwords SET site = ?, username = ?, encrypted_password = ?, notes = ? WHERE id = ? AND user_id = ?",
 		input.Site, input.Username, encrypted, input.Notes, input.ID, session.UserID)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		log.Printf("Error updating password (API): %v", err)
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "InternalServerError")})
 		return
 	}
 
@@ -270,7 +274,8 @@ func APIDeletePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := db.DB.Exec("DELETE FROM passwords WHERE id = ? AND user_id = ?", input.ID, session.UserID)
 	if err != nil {
-		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: err.Error()})
+		log.Printf("Error deleting password (API): %v", err)
+		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "InternalServerError")})
 		return
 	}
 
