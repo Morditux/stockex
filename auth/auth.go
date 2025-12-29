@@ -16,7 +16,22 @@ import (
 var Store *sessions.CookieStore
 
 func InitStore() {
-	Store = sessions.NewCookieStore([]byte(config.AppConfig.SessionKey))
+	// Derive two 32-byte keys from the session key to ensure secure encryption
+	// Auth key for signing (HMAC)
+	authKey := sha256.Sum256([]byte(config.AppConfig.SessionKey + "auth"))
+	// Encryption key for content encryption (AES)
+	encKey := sha256.Sum256([]byte(config.AppConfig.SessionKey + "encryption"))
+
+	Store = sessions.NewCookieStore(authKey[:], encKey[:])
+
+	// Ensure cookie security settings
+	Store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7, // 7 days
+		HttpOnly: true,
+		Secure:   config.AppConfig.ListenPort != 8080, // Default to true unless dev port
+		SameSite: http.SameSiteLaxMode,
+	}
 }
 
 const SessionName = "stockex-session"
