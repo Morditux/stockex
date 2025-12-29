@@ -24,7 +24,10 @@
         </div>
 
         <div id="error-message" class="error"></div>
-        <button type="submit" class="btn btn-primary">{{T "Signup"}}</button>
+        <button type="submit" class="btn btn-primary" hx-disabled-elt="this">
+            <span class="btn-default-text">{{T "Signup"}}</span>
+            <span class="btn-loading-indicator">{{T "SigningUp"}}</span>
+        </button>
     </form>
     <p>{{T "AlreadyHaveAccount"}} <a href="/login">{{T "Login"}}</a></p>
 </div>
