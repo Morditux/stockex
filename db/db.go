@@ -61,8 +61,10 @@ func InitDB(dataSourceName string) {
 	if count == 0 {
 		// Default admin
 		adminPassword := os.Getenv("STOCKEX_ADMIN_PASSWORD")
+		isDefaultPassword := false
 		if adminPassword == "" {
 			adminPassword = "admin123"
+			isDefaultPassword = true
 		}
 
 		hashedPassword, _ := HashPassword(adminPassword)
@@ -71,7 +73,12 @@ func InitDB(dataSourceName string) {
 		if err != nil {
 			log.Fatalf("Error creating default admin: %v", err)
 		}
-		log.Printf("Default admin created: admin / %s", adminPassword)
+
+		if isDefaultPassword {
+			log.Printf("Default admin created: admin / %s (WARNING: Default password used, please change immediately!)", adminPassword)
+		} else {
+			log.Println("Default admin created: admin / [HIDDEN] (password set via STOCKEX_ADMIN_PASSWORD)")
+		}
 	}
 
 	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS api_sessions (
