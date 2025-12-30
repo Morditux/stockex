@@ -68,6 +68,9 @@
             const primaryBtn = document.getElementById('modalPrimaryBtn');
             const secondaryBtn = document.getElementById('modalSecondaryBtn');
 
+            // 1. Save currently focused element to restore later
+            const previousFocus = document.activeElement;
+
             title.textContent = options.title || `{{T "Notification"}}`;
             message.textContent = options.message || '';
 
@@ -82,11 +85,36 @@
 
             modal.style.display = 'flex';
 
+            // 2. Focus the primary button (or appropriate action)
+            // Using setTimeout to ensure rendering is complete
+            setTimeout(() => {
+                if (options.isConfirm) {
+                    // For destructive actions, maybe focus cancel?
+                    // But standard pattern often focuses primary. Let's stick to primary for now.
+                    primaryBtn.focus();
+                } else {
+                    primaryBtn.focus();
+                }
+            }, 50);
+
             const cleanup = () => {
                 modal.style.display = 'none';
                 primaryBtn.onclick = null;
                 secondaryBtn.onclick = null;
+                document.removeEventListener('keydown', handleEscape);
+
+                // 4. Restore focus
+                if (previousFocus) previousFocus.focus();
             };
+
+            // 3. Handle Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    cleanup();
+                    if (options.onCancel) options.onCancel();
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
 
             primaryBtn.onclick = () => {
                 cleanup();
