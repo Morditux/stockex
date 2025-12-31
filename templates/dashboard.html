@@ -16,9 +16,9 @@
 </div>
 
 <!-- Add Password Modal -->
-<div id="add-password-modal" class="modal">
+<div id="add-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
     <div class="modal-content">
-        <h2>{{T "AddNewPassword"}}</h2>
+        <h2 id="add-modal-title">{{T "AddNewPassword"}}</h2>
         <form hx-post="/passwords/add" hx-swap="none"
               hx-disabled-elt="find button[type='submit']"
               hx-on::after-request="if(event.detail.successful) hideAddModal();">
@@ -51,9 +51,9 @@
 </div>
 
 <!-- Edit Password Modal -->
-<div id="edit-password-modal" class="modal">
+<div id="edit-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
     <div class="modal-content">
-        <h2>{{T "EditPassword"}}</h2>
+        <h2 id="edit-modal-title">{{T "EditPassword"}}</h2>
         <form hx-post="/passwords/update" hx-swap="none"
               hx-disabled-elt="find button[type='submit']"
               hx-on::after-request="if(event.detail.successful) hideEditModal();">
@@ -87,9 +87,9 @@
 </div>
 
 <!-- Change Password Modal -->
-<div id="change-password-modal" class="modal">
+<div id="change-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="change-pwd-title">
     <div class="modal-content">
-        <h2>{{T "ChangeAccountPassword"}}</h2>
+        <h2 id="change-pwd-title">{{T "ChangeAccountPassword"}}</h2>
         <form hx-post="/change-password" hx-swap="none"
               hx-disabled-elt="find button[type='submit']"
               hx-on::after-request="if(event.detail.successful) hideChangePasswordModal();">
@@ -112,9 +112,9 @@
 </div>
 
 <!-- Import Passwords Modal -->
-<div id="import-password-modal" class="modal">
+<div id="import-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
     <div class="modal-content">
-        <h2>{{T "ImportChromePasswords"}}</h2>
+        <h2 id="import-modal-title">{{T "ImportChromePasswords"}}</h2>
         <p style="margin-bottom: 1.5rem; color: var(--text-muted);">{{T "ImportInstructions"}}</p>
         <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
               hx-disabled-elt="find button[type='submit']"
@@ -136,34 +136,60 @@
 </div>
 
 <script>
+    let lastFocusedElement;
+
+    function openModalHelper(id) {
+        lastFocusedElement = document.activeElement;
+        const modal = document.getElementById(id);
+        modal.style.display = 'flex';
+        // Focus first input
+        const firstInput = modal.querySelector('input, textarea, select, button');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    }
+
+    function closeModalHelper(id) {
+        document.getElementById(id).style.display = 'none';
+        if (lastFocusedElement) lastFocusedElement.focus();
+    }
+
+    // Global Escape key handler
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('add-password-modal').style.display === 'flex') hideAddModal();
+            else if (document.getElementById('edit-password-modal').style.display === 'flex') hideEditModal();
+            else if (document.getElementById('change-password-modal').style.display === 'flex') hideChangePasswordModal();
+            else if (document.getElementById('import-password-modal').style.display === 'flex') hideImportModal();
+        }
+    });
+
     function showImportModal() {
-        document.getElementById('import-password-modal').style.display = 'flex';
+        openModalHelper('import-password-modal');
     }
     function hideImportModal() {
-        document.getElementById('import-password-modal').style.display = 'none';
+        closeModalHelper('import-password-modal');
         document.getElementById('import-error').innerText = '';
     }
     function showAddModal() {
-        document.getElementById('add-password-modal').style.display = 'flex';
+        openModalHelper('add-password-modal');
     }
     function hideAddModal() {
-        document.getElementById('add-password-modal').style.display = 'none';
+        closeModalHelper('add-password-modal');
     }
     function showEditModal(id, site, username, notes) {
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-site').value = site;
         document.getElementById('edit-username').value = username;
         document.getElementById('edit-notes').value = notes;
-        document.getElementById('edit-password-modal').style.display = 'flex';
+        openModalHelper('edit-password-modal');
     }
     function hideEditModal() {
-        document.getElementById('edit-password-modal').style.display = 'none';
+        closeModalHelper('edit-password-modal');
     }
     function showChangePasswordModal() {
-        document.getElementById('change-password-modal').style.display = 'flex';
+        openModalHelper('change-password-modal');
     }
     function hideChangePasswordModal() {
-        document.getElementById('change-password-modal').style.display = 'none';
+        closeModalHelper('change-password-modal');
     }
 
     document.body.addEventListener('passwordUpdated', function () {
