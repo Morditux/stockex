@@ -123,6 +123,10 @@ func GetAPISession(token string) (APISession, bool) {
 
 func generateRandomToken(n int) string {
 	b := make([]byte, n)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// If we can't generate random numbers, the system is in a critical state.
+		// Panic is appropriate here as we cannot securely continue.
+		panic(fmt.Sprintf("critical security error: failed to generate random token: %v", err))
+	}
 	return base64.URLEncoding.EncodeToString(b)
 }
