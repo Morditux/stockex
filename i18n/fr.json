@@ -93,6 +93,7 @@
     "ConfirmDelete": "Êtes-vous sûr de vouloir supprimer ce mot de passe ?",
     "ConfirmDeleteUser": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "ShowPasswordFor": "Afficher le mot de passe pour %s",
+    "HidePasswordFor": "Masquer le mot de passe pour %s",
     "CopyPasswordFor": "Copier le mot de passe pour %s",
     "EditPasswordFor": "Modifier le mot de passe pour %s",
     "DeletePasswordFor": "Supprimer le mot de passe pour %s",
