@@ -60,7 +60,14 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 	err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt FROM users WHERE LOWER(username) = LOWER(?)", input.Username).
 		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 
-	if err != nil || !db.CheckPasswordHash(input.Password, user.PasswordHash) {
+	// Timing attack mitigation: always check password
+	targetHash := user.PasswordHash
+	if err != nil {
+		targetHash = db.DummyHash
+	}
+	match := db.CheckPasswordHash(input.Password, targetHash)
+
+	if err != nil || !match {
 		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidCredentials")})
 		return
 	}
