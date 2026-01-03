@@ -490,3 +490,7 @@ p a {
 .htmx-request .btn-default-text {
     display: none;
 }
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
