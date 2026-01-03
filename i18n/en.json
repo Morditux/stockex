@@ -97,5 +97,6 @@
     "CopyPasswordFor": "Copy password for %s",
     "EditPasswordFor": "Edit password for %s",
     "DeletePasswordFor": "Delete password for %s",
-    "InternalServerError": "Internal Server Error"
+    "InternalServerError": "Internal Server Error",
+    "OpensInNewWindow": "Opens in new window"
 }
