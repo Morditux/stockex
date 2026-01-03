@@ -12,9 +12,13 @@ import (
 )
 
 var DB *sql.DB
+var DummyHash string
 
 func InitDB(dataSourceName string) {
 	var err error
+	// Generate a dummy hash for timing attack mitigation
+	DummyHash, _ = HashPassword("dummy")
+
 	DB, err = sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		log.Fatal(err)

@@ -1,3 +1,7 @@
+## 2024-12-24 - Username Enumeration via Timing
+**Vulnerability:** The login process returned immediately if a username was not found, but performed an expensive `bcrypt` comparison if it was found. This timing discrepancy allowed attackers to enumerate valid usernames.
+**Learning:** Returning early on "user not found" when using slow hash functions (like bcrypt/argon2) leaks existence information via side-channel (time).
+**Prevention:** Always perform a hash comparison, even if the user is not found. Use a pre-calculated dummy hash (of the same cost) to ensure the timing is indistinguishable from a valid user with an incorrect password.
 ## 2024-12-24 - CSRF Protection Missing
 **Vulnerability:** The application lacks CSRF protection for form submissions, making it vulnerable to cross-site request forgery attacks.
 **Learning:** Standard form-based authentication often requires explicit CSRF token management, unlike modern API-centric SPAs which might rely on other mechanisms or frameworks that handle it.

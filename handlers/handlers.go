@@ -85,7 +85,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		err := db.DB.QueryRow("SELECT id, username, password_hash, role, salt, validated FROM users WHERE LOWER(username) = LOWER(?)", username).
 			Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Salt, &user.Validated)
 
-		if err != nil || !db.CheckPasswordHash(password, user.PasswordHash) {
+		// Timing attack mitigation: always check password
+		targetHash := user.PasswordHash
+		if err != nil {
+			targetHash = db.DummyHash
+		}
+		match := db.CheckPasswordHash(password, targetHash)
+
+		if err != nil || !match {
 			w.Header().Set("HX-Trigger", "loginError")
 			// HTMX doesn't process HX-Trigger on 401/403 by default.
 			// We return 200 OK for HTMX requests to ensure the trigger works.
