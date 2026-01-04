@@ -9,7 +9,10 @@
         </div>
         <div class="form-group">
             <label for="password">{{T "Password"}}</label>
-            <input type="password" id="password" name="password" required placeholder="{{T " EnterPassword"}}">
+            <div class="password-input-wrapper">
+                <input type="password" id="password" name="password" required placeholder="{{T " EnterPassword"}}" style="padding-right: 4rem;">
+                <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+            </div>
         </div>
         <button type="submit" class="btn btn-primary" hx-disabled-elt="this">
             <span class="btn-default-text">{{T "Login"}}</span>
@@ -28,4 +31,5 @@
         });
     });
 </script>
+
 {{end}}

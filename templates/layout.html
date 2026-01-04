@@ -12,6 +12,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{.csrfToken}}">
+    <style>
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .password-toggle:hover {
+            background: transparent;
+            color: var(--primary);
+        }
+    </style>
 </head>
 
 <body class="dark-mode">
@@ -144,6 +167,15 @@
                 message: 'Network error. Please check your connection.'
             });
         });
+
+        // Toggle Password Visibility
+        function toggleInputPassword(btn, inputId) {
+            const input = document.getElementById(inputId);
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            btn.innerText = isPassword ? '{{T "Hide"}}' : '{{T "Show"}}';
+            btn.setAttribute('aria-label', isPassword ? '{{T "HidePassword"}}' : '{{T "ShowPassword"}}');
+        }
     </script>
 </body>
 

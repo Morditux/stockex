@@ -92,6 +92,8 @@
     "PasswordUpdatedSuccessfully": "Password updated successfully!",
     "ConfirmDelete": "Are you sure you want to delete this password?",
     "ConfirmDeleteUser": "Are you sure you want to delete this user?",
+    "ShowPassword": "Show password",
+    "HidePassword": "Hide password",
     "ShowPasswordFor": "Show password for %s",
     "HidePasswordFor": "Hide password for %s",
     "CopyPasswordFor": "Copy password for %s",

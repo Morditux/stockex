@@ -9,7 +9,10 @@
         </div>
         <div class="form-group">
             <label for="password">{{T "Password"}}</label>
-            <input type="password" id="password" name="password" required placeholder="{{T " ChoosePassword"}}">
+            <div class="password-input-wrapper">
+                <input type="password" id="password" name="password" required placeholder="{{T " ChoosePassword"}}" style="padding-right: 4rem;">
+                <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+            </div>
         </div>
 
         <div class="form-group captcha-container">
@@ -59,5 +62,6 @@
         border-radius: 4px;
         background: white;
     }
+
 </style>
 {{end}}
