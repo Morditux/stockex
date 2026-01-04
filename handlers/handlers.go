@@ -134,6 +134,13 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
+		if err := auth.ValidatePassword(password); err != nil {
+			lang := i18n.DetectLanguage(r)
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte(i18n.T(lang, "PasswordTooShort")))
+			return
+		}
+
 		hashedPassword, _ := db.HashPassword(password)
 		salt, _ := db.GenerateSalt()
 		result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", username, hashedPassword, salt)
@@ -349,6 +356,13 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	if newPassword == "" {
 		w.Header().Set("HX-Retarget", "#password-error")
 		w.Write([]byte("Password cannot be empty"))
+		return
+	}
+
+	if err := auth.ValidatePassword(newPassword); err != nil {
+		w.Header().Set("HX-Retarget", "#password-error")
+		lang := i18n.DetectLanguage(r)
+		w.Write([]byte(i18n.T(lang, "PasswordTooShort")))
 		return
 	}
 

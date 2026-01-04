@@ -98,5 +98,6 @@
     "EditPasswordFor": "Modifier le mot de passe pour %s",
     "DeletePasswordFor": "Supprimer le mot de passe pour %s",
     "InternalServerError": "Erreur interne du serveur",
-    "OpensInNewWindow": "S'ouvre dans une nouvelle fenêtre"
+    "OpensInNewWindow": "S'ouvre dans une nouvelle fenêtre",
+    "PasswordTooShort": "Le mot de passe doit contenir au moins 10 caractères"
 }

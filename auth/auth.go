@@ -130,3 +130,12 @@ func generateRandomToken(n int) string {
 	}
 	return base64.URLEncoding.EncodeToString(b)
 }
+
+// ValidatePassword enforces password strength requirements.
+// Current policy: Minimum 10 characters.
+func ValidatePassword(password string) error {
+	if len(password) < 10 {
+		return fmt.Errorf("password must be at least 10 characters long")
+	}
+	return nil
+}

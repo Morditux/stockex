@@ -105,6 +105,11 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := auth.ValidatePassword(input.Password); err != nil {
+		sendJSONResponse(w, http.StatusBadRequest, APIResponse{Status: "error", Message: i18n.T(lang, "PasswordTooShort")})
+		return
+	}
+
 	hashedPassword, _ := db.HashPassword(input.Password)
 	salt, _ := db.GenerateSalt()
 	result, err := db.DB.Exec("INSERT INTO users (username, password_hash, salt) VALUES (?, ?, ?)", input.Username, hashedPassword, salt)
