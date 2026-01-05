@@ -71,6 +71,14 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
+		ip := getClientIP(r)
+		if !loginLimiter.Allow(ip) {
+			lang := i18n.DetectLanguage(r)
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte(i18n.T(lang, "TooManyAttempts")))
+			return
+		}
+
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
@@ -93,6 +101,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		match := db.CheckPasswordHash(password, targetHash)
 
 		if err != nil || !match {
+			loginLimiter.RecordFailure(ip)
 			w.Header().Set("HX-Trigger", "loginError")
 			// HTMX doesn't process HX-Trigger on 401/403 by default.
 			// We return 200 OK for HTMX requests to ensure the trigger works.
@@ -103,6 +112,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
+
+		loginLimiter.Reset(ip)
 
 		saltBytes, _ := base64.StdEncoding.DecodeString(user.Salt)
 		masterKey := crypto.DeriveKey(password, saltBytes)
