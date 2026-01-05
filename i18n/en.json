@@ -101,5 +101,6 @@
     "DeletePasswordFor": "Delete password for %s",
     "InternalServerError": "Internal Server Error",
     "OpensInNewWindow": "Opens in new window",
-    "PasswordTooShort": "Password must be at least 10 characters long"
+    "PasswordTooShort": "Password must be at least 10 characters long",
+    "TooManyAttempts": "Too many failed attempts. Please try again later."
 }

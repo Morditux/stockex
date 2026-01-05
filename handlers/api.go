@@ -40,6 +40,12 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := getClientIP(r)
+	if !loginLimiter.Allow(ip) {
+		sendJSONResponse(w, http.StatusTooManyRequests, APIResponse{Status: "error", Message: i18n.T(lang, "TooManyAttempts")})
+		return
+	}
+
 	var input struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -68,9 +74,12 @@ func APILoginHandler(w http.ResponseWriter, r *http.Request) {
 	match := db.CheckPasswordHash(input.Password, targetHash)
 
 	if err != nil || !match {
+		loginLimiter.RecordFailure(ip)
 		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{Status: "error", Message: i18n.T(lang, "InvalidCredentials")})
 		return
 	}
+
+	loginLimiter.Reset(ip)
 
 	saltBytes, _ := base64.StdEncoding.DecodeString(user.Salt)
 	masterKey := crypto.DeriveKey(input.Password, saltBytes)
