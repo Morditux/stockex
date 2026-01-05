@@ -16,14 +16,14 @@
         </div>
 
         <div class="form-group captcha-container">
-            <label>{{T "Captcha"}}</label>
+            <label for="captcha-solution">{{T "Captcha"}}</label>
             <div class="captcha-box">
                 <img id="captcha-img" src="/captcha/{{.CaptchaID}}.png" alt="Captcha">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="reloadCaptcha()">{{T
                     "ReloadCaptcha"}}</button>
             </div>
             <input type="hidden" name="captcha_id" id="captcha-id" value="{{.CaptchaID}}">
-            <input type="text" name="captcha_solution" required placeholder="{{T " EnterCaptcha"}}" autocomplete="off">
+            <input type="text" id="captcha-solution" name="captcha_solution" required placeholder="{{T " EnterCaptcha"}}" autocomplete="off">
         </div>
 
         <div id="error-message" class="error"></div>
