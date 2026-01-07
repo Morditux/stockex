@@ -24,6 +24,12 @@ var loginLimiter = &rateLimiter{
 	blocked:  make(map[string]time.Time),
 }
 
+// signupLimiter is shared by SignupHandler and APISignupHandler
+var signupLimiter = &rateLimiter{
+	attempts: make(map[string]*attemptData),
+	blocked:  make(map[string]time.Time),
+}
+
 const (
 	maxAttempts    = 5
 	blockDuration  = 15 * time.Minute
