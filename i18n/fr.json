@@ -90,6 +90,7 @@
     "DecryptionFailed": "Échec du déchiffrement",
     "DecryptionError": "Échec de la copie du mot de passe dans le presse-papier.",
     "ImportNow": "Importer maintenant",
+    "Loading": "Chargement",
     "ConfirmDelete": "Êtes-vous sûr de vouloir supprimer ce mot de passe ?",
     "ConfirmDeleteUser": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "ShowPassword": "Afficher le mot de passe",
