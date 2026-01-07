@@ -104,6 +104,12 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := getClientIP(r)
+	if !signupLimiter.Allow(ip) {
+		sendJSONResponse(w, http.StatusTooManyRequests, APIResponse{Status: "error", Message: i18n.T(lang, "TooManyAttempts")})
+		return
+	}
+
 	var input struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -126,6 +132,9 @@ func APISignupHandler(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, http.StatusConflict, APIResponse{Status: "error", Message: i18n.T(lang, "UsernameAlreadyExists")})
 		return
 	}
+
+	// Record signup attempt to limit rate of creation per IP
+	signupLimiter.RecordFailure(ip)
 
 	id, _ := result.LastInsertId()
 	saltBytes, _ := base64.StdEncoding.DecodeString(salt)

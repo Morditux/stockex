@@ -132,6 +132,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
+		ip := getClientIP(r)
+		if !signupLimiter.Allow(ip) {
+			lang := i18n.DetectLanguage(r)
+			w.Header().Set("HX-Retarget", "#error-message")
+			w.Write([]byte(i18n.T(lang, "TooManyAttempts")))
+			return
+		}
+
 		captchaID := r.FormValue("captcha_id")
 		captchaSolution := r.FormValue("captcha_solution")
 
@@ -161,6 +169,9 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(i18n.T(lang, "UsernameAlreadyExists")))
 			return
 		}
+
+		// Record signup attempt to limit rate of creation per IP
+		signupLimiter.RecordFailure(ip)
 
 		id, _ := result.LastInsertId()
 		saltBytes, _ := base64.StdEncoding.DecodeString(salt)
