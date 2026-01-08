@@ -11,6 +11,58 @@
     --border: rgba(255, 255, 255, 0.1);
 }
 
+/* Light Theme */
+:root.light {
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --glass: rgba(255, 255, 255, 0.8);
+    --border: rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+}
+
+.theme-toggle:hover {
+    background: var(--border);
+    transform: rotate(15deg);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.theme-toggle .sun-icon {
+    display: none;
+}
+
+.theme-toggle .moon-icon {
+    display: block;
+}
+
+:root.light .theme-toggle .sun-icon {
+    display: block;
+}
+
+:root.light .theme-toggle .moon-icon {
+    display: none;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -411,14 +463,82 @@ p a {
 }
 
 /* Mobile Responsiveness */
+/* Hamburger Menu */
+.hamburger {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 101;
+}
+
+.hamburger svg {
+    width: 24px;
+    height: 24px;
+}
+
+.hamburger .close-icon {
+    display: none;
+}
+
+.hamburger.active .hamburger-icon {
+    display: none;
+}
+
+.hamburger.active .close-icon {
+    display: block;
+}
+
 @media (max-width: 768px) {
-    .container {
-        padding: 1rem;
+    .hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-links {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border);
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 99;
+    }
+
+    .nav-links.active {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .nav-links a {
+        margin-left: 0;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .nav-links a:last-of-type {
+        border-bottom: none;
     }
 
     nav .container {
-        flex-direction: column;
-        gap: 1rem;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .container {
+        padding: 1rem;
     }
 
     .dashboard-header {
@@ -478,6 +598,7 @@ p a {
         text-align: center;
     }
 }
+
 /* Loading State Utilities */
 .btn-loading-indicator {
     display: none;
@@ -490,7 +611,195 @@ p a {
 .htmx-request .btn-default-text {
     display: none;
 }
+
 :focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    max-width: 350px;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+/* Search Input */
+.search-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    width: 200px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--primary);
+    width: 250px;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Skeleton Loading */
+.skeleton {
+    background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 150px;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text {
+    height: 1rem;
+    width: 100px;
+}
+
+.skeleton-btn {
+    height: 2.5rem;
+    width: 70px;
+    border-radius: 50px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+}
+
+/* Password Generator */
+.password-generator {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.password-generator input {
+    flex: 1;
+}
+
+.btn-generate {
+    padding: 0.75rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-generate:hover {
+    background: var(--primary-hover);
+}
+
+.btn-generate svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Mobile Responsive for new elements */
+@media (max-width: 768px) {
+    #toast-container {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .toast {
+        max-width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .search-input:focus {
+        width: 100%;
+    }
+
+    .theme-toggle {
+        width: 36px;
+        height: 36px;
+    }
 }

@@ -103,5 +103,16 @@
     "InternalServerError": "Internal Server Error",
     "OpensInNewWindow": "Opens in new window",
     "PasswordTooShort": "Password must be at least 10 characters long",
-    "TooManyAttempts": "Too many failed attempts. Please try again later."
+    "TooManyAttempts": "Too many failed attempts. Please try again later.",
+    "ToggleTheme": "Toggle theme",
+    "SearchPasswords": "Search...",
+    "GeneratePassword": "Generate password",
+    "Menu": "Menu",
+    "AddFirstPassword": "Start securing your accounts now.",
+    "PasswordAddedSuccessfully": "Password added successfully!",
+    "PasswordDeletedSuccessfully": "Password deleted successfully!",
+    "PasswordsLoaded": "Passwords loaded",
+    "Saving": "Saving...",
+    "Updating": "Updating...",
+    "Importing": "Importing..."
 }

@@ -3,15 +3,48 @@
     <div class="dashboard-header">
         <h1>{{T "WelcomeToVault"}}</h1>
         <div class="header-actions">
+            <input type="text" class="search-input" id="password-search" placeholder="{{T " SearchPasswords"}}"
+                oninput="filterPasswords(this.value)">
             <button class="btn btn-secondary" onclick="showChangePasswordModal()">{{T "ChangePassword"}}</button>
             <button class="btn btn-secondary" onclick="showImportModal()">{{T "ImportCSV"}}</button>
-            <a href="/passwords/export" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" aria-label='{{T "ExportCSV"}} - {{T "OpensInNewWindow"}}'>{{T "ExportCSV"}}</a>
+            <a href="/passwords/export" class="btn btn-secondary" target="_blank" rel="noopener noreferrer"
+                aria-label='{{T "ExportCSV"}} - {{T "OpensInNewWindow"}}'>{{T "ExportCSV"}}</a>
             <button class="btn btn-primary" onclick="showAddModal()">{{T "AddPassword"}}</button>
         </div>
     </div>
 
-    <div class="password-grid" hx-get="/passwords" hx-trigger="load, passwordChanged from:body">
-        <div class="loading">{{T "LoadingPasswords"}}</div>
+    <div class="password-grid" id="password-grid" hx-get="/passwords" hx-trigger="load, passwordChanged from:body">
+        <!-- Skeleton Loading -->
+        <div class="skeleton-card">
+            <div class="card-info">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text"></div>
+            </div>
+            <div class="card-actions">
+                <div class="skeleton skeleton-btn"></div>
+                <div class="skeleton skeleton-btn"></div>
+            </div>
+        </div>
+        <div class="skeleton-card">
+            <div class="card-info">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text"></div>
+            </div>
+            <div class="card-actions">
+                <div class="skeleton skeleton-btn"></div>
+                <div class="skeleton skeleton-btn"></div>
+            </div>
+        </div>
+        <div class="skeleton-card">
+            <div class="card-info">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text"></div>
+            </div>
+            <div class="card-actions">
+                <div class="skeleton skeleton-btn"></div>
+                <div class="skeleton skeleton-btn"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -19,9 +52,8 @@
 <div id="add-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
     <div class="modal-content">
         <h2 id="add-modal-title">{{T "AddNewPassword"}}</h2>
-        <form hx-post="/passwords/add" hx-swap="none"
-              hx-disabled-elt="find button[type='submit']"
-              hx-on::after-request="if(event.detail.successful) hideAddModal();">
+        <form hx-post="/passwords/add" hx-swap="none" hx-disabled-elt="find button[type='submit']"
+            hx-on::after-request="if(event.detail.successful) hideAddModal();">
             {{ .csrfField }}
             <div class="form-group">
                 <label for="add-site">{{T "SiteService"}}</label>
@@ -33,7 +65,17 @@
             </div>
             <div class="form-group">
                 <label for="add-password">{{T "Password"}}</label>
-                <input type="password" name="password" id="add-password" required placeholder="{{T " SitePassword"}}">
+                <div class="password-generator">
+                    <input type="password" name="password" id="add-password" required placeholder="{{T "
+                        SitePassword"}}">
+                    <button type="button" class="btn-generate" onclick="generateAndFillPassword('add-password')"
+                        aria-label="{{T " GeneratePassword"}}" title="{{T " GeneratePassword"}}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="add-notes">{{T "Notes"}}</label>
@@ -54,9 +96,8 @@
 <div id="edit-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
     <div class="modal-content">
         <h2 id="edit-modal-title">{{T "EditPassword"}}</h2>
-        <form hx-post="/passwords/update" hx-swap="none"
-              hx-disabled-elt="find button[type='submit']"
-              hx-on::after-request="if(event.detail.successful) hideEditModal();">
+        <form hx-post="/passwords/update" hx-swap="none" hx-disabled-elt="find button[type='submit']"
+            hx-on::after-request="if(event.detail.successful) hideEditModal();">
             {{ .csrfField }}
             <input type="hidden" name="id" id="edit-id">
             <div class="form-group">
@@ -69,7 +110,17 @@
             </div>
             <div class="form-group">
                 <label for="edit-password">{{T "Password"}}</label>
-                <input type="password" name="password" id="edit-password" required placeholder="{{T " SitePassword"}}">
+                <div class="password-generator">
+                    <input type="password" name="password" id="edit-password" required placeholder="{{T "
+                        SitePassword"}}">
+                    <button type="button" class="btn-generate" onclick="generateAndFillPassword('edit-password')"
+                        aria-label="{{T " GeneratePassword"}}" title="{{T " GeneratePassword"}}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="edit-notes">{{T "Notes"}}</label>
@@ -90,13 +141,13 @@
 <div id="change-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="change-pwd-title">
     <div class="modal-content">
         <h2 id="change-pwd-title">{{T "ChangeAccountPassword"}}</h2>
-        <form hx-post="/change-password" hx-swap="none"
-              hx-disabled-elt="find button[type='submit']"
-              hx-on::after-request="if(event.detail.successful) hideChangePasswordModal();">
+        <form hx-post="/change-password" hx-swap="none" hx-disabled-elt="find button[type='submit']"
+            hx-on::after-request="if(event.detail.successful) hideChangePasswordModal();">
             {{ .csrfField }}
             <div class="form-group">
                 <label for="change-new-password">{{T "NewPassword"}}</label>
-                <input type="password" name="new_password" id="change-new-password" required placeholder="{{T " EnterPassword"}}">
+                <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "
+                    EnterPassword"}}">
             </div>
             <div id="password-error" class="error"></div>
             <div class="modal-actions">
@@ -117,11 +168,13 @@
         <h2 id="import-modal-title">{{T "ImportChromePasswords"}}</h2>
         <p style="margin-bottom: 1.5rem; color: var(--text-muted);">{{T "ImportInstructions"}}</p>
         <form hx-post="/passwords/import" hx-encoding="multipart/form-data" hx-swap="none"
-              hx-disabled-elt="find button[type='submit']"
-              hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
+            hx-disabled-elt="find button[type='submit']"
+            hx-on::after-request="if(event.detail.successful) { hideImportModal(); htmx.trigger('body', 'passwordChanged'); }">
             {{ .csrfField }}
             <div class="form-group">
-                <label for="import-csv-file" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{{T "ImportCSV"}}</label>
+                <label for="import-csv-file" class="sr-only"
+                    style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{{T
+                    "ImportCSV"}}</label>
                 <input type="file" name="csv_file" id="import-csv-file" accept=".csv" required>
             </div>
             <div id="import-error" class="error"></div>
@@ -154,7 +207,7 @@
     }
 
     // Global Escape key handler
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             if (document.getElementById('add-password-modal').style.display === 'flex') hideAddModal();
             else if (document.getElementById('edit-password-modal').style.display === 'flex') hideEditModal();
@@ -196,5 +249,52 @@
     document.body.addEventListener('passwordUpdated', function () {
         window.showModal({ message: '{{T "PasswordUpdatedSuccessfully"}}' });
     });
+
+    // Search/Filter passwords
+    function filterPasswords(query) {
+        const cards = document.querySelectorAll('#password-grid .password-card');
+        const lowerQuery = query.toLowerCase();
+
+        cards.forEach(card => {
+            const site = card.querySelector('h3')?.textContent.toLowerCase() || '';
+            const username = card.querySelector('.card-info p')?.textContent.toLowerCase() || '';
+
+            if (site.includes(lowerQuery) || username.includes(lowerQuery)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Password Generator
+    function generatePassword(length = 16) {
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const numbers = '0123456789';
+        const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        const allChars = uppercase + lowercase + numbers + symbols;
+
+        let password = '';
+        // Ensure at least one of each type
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += numbers[Math.floor(Math.random() * numbers.length)];
+        password += symbols[Math.floor(Math.random() * symbols.length)];
+
+        // Fill the rest
+        for (let i = password.length; i < length; i++) {
+            password += allChars[Math.floor(Math.random() * allChars.length)];
+        }
+
+        // Shuffle
+        return password.split('').sort(() => Math.random() - 0.5).join('');
+    }
+
+    function generateAndFillPassword(inputId) {
+        const input = document.getElementById(inputId);
+        input.value = generatePassword(16);
+        input.type = 'text'; // Show the generated password
+    }
 </script>
 {{end}}

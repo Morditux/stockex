@@ -3,8 +3,22 @@
     <h1>{{T "UserManagement"}}</h1>
 
     <div class="tabs">
-        <button class="tab-link active" onclick="openTab(event, 'pending-tab')">{{T "PendingUsers"}}</button>
-        <button class="tab-link" onclick="openTab(event, 'validated-tab')">{{T "ValidatedUsers"}}</button>
+        <button class="tab-link active" onclick="openTab(event, 'pending-tab')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{T "PendingUsers"}}
+        </button>
+        <button class="tab-link" onclick="openTab(event, 'validated-tab')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{T "ValidatedUsers"}}
+        </button>
     </div>
 
     <div id="pending-tab" class="tab-content active">

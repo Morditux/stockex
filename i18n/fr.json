@@ -102,5 +102,16 @@
     "DeletePasswordFor": "Supprimer le mot de passe pour %s",
     "InternalServerError": "Erreur interne du serveur",
     "OpensInNewWindow": "S'ouvre dans une nouvelle fenêtre",
-    "PasswordTooShort": "Le mot de passe doit contenir au moins 10 caractères"
+    "PasswordTooShort": "Le mot de passe doit contenir au moins 10 caractères",
+    "ToggleTheme": "Changer de thème",
+    "SearchPasswords": "Rechercher...",
+    "GeneratePassword": "Générer un mot de passe",
+    "Menu": "Menu",
+    "AddFirstPassword": "Commencez à sécuriser vos comptes dès maintenant.",
+    "PasswordAddedSuccessfully": "Mot de passe ajouté avec succès !",
+    "PasswordDeletedSuccessfully": "Mot de passe supprimé avec succès !",
+    "PasswordsLoaded": "Mots de passe chargés",
+    "Saving": "Enregistrement...",
+    "Updating": "Mise à jour...",
+    "Importing": "Importation..."
 }

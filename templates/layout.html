@@ -41,6 +41,16 @@
     <nav>
         <div class="container">
             <a href="/" class="logo">{{.AppName}}</a>
+            <button class="hamburger" onclick="toggleMobileMenu()" aria-label="{{T " Menu"}}" aria-expanded="false">
+                <svg class="hamburger-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg class="close-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
             <div class="nav-links">
                 {{if .}}
                 <a href="/dashboard">{{T "Dashboard"}}</a>
@@ -52,6 +62,18 @@
                 <a href="/login">{{T "Login"}}</a>
                 <a href="/signup">{{T "Signup"}}</a>
                 {{end}}
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="{{T " ToggleTheme"}}">
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
             </div>
         </div>
     </nav>
@@ -176,6 +198,67 @@
             btn.innerText = isPassword ? '{{T "Hide"}}' : '{{T "Show"}}';
             btn.setAttribute('aria-label', isPassword ? '{{T "HidePassword"}}' : '{{T "ShowPassword"}}');
         }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const root = document.documentElement;
+            const isLight = root.classList.toggle('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+
+        // Initialize theme on load
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light');
+            }
+        })();
+
+        // Toast Notification System
+        window.showToast = function (message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Remove after duration
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        };
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', navLinks.classList.contains('active'));
+        }
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const hamburger = document.querySelector('.hamburger');
+                const navLinks = document.querySelector('.nav-links');
+                if (navLinks.classList.contains('active')) {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+
+        // Show toast on successful HTMX actions
+        document.body.addEventListener('passwordAdded', () => window.showToast('{{T "PasswordAddedSuccessfully"}}', 'success'));
+        document.body.addEventListener('passwordUpdated', () => window.showToast('{{T "PasswordUpdatedSuccessfully"}}', 'success'));
+        document.body.addEventListener('passwordDeleted', () => window.showToast('{{T "PasswordDeletedSuccessfully"}}', 'success'));
+        document.body.addEventListener('passwordChanged', () => window.showToast('{{T "PasswordsLoaded"}}', 'info'));
     </script>
 </body>
 
