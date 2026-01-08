@@ -31,6 +31,16 @@ func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		// Content Security Policy
+		// Allows scripts/styles from self and specific external sources (htmx, fonts).
+		// 'unsafe-inline' is currently required for some inline scripts/styles in templates.
+		csp := "default-src 'self'; " +
+			"script-src 'self' 'unsafe-inline' https://unpkg.com; " +
+			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+			"font-src 'self' https://fonts.gstatic.com; " +
+			"img-src 'self' data:; " +
+			"connect-src 'self';"
+		w.Header().Set("Content-Security-Policy", csp)
 		next.ServeHTTP(w, r)
 	})
 }

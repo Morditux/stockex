@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -33,6 +34,25 @@ func TestSecurityHeadersMiddleware(t *testing.T) {
 	for key, expectedValue := range expectedHeaders {
 		if value := rr.Header().Get(key); value != expectedValue {
 			t.Errorf("Header %s: expected %s, got %s", key, expectedValue, value)
+		}
+	}
+
+	// Verify CSP
+	csp := rr.Header().Get("Content-Security-Policy")
+	if csp == "" {
+		t.Error("Expected Content-Security-Policy header, got empty")
+	}
+
+	expectedDirectives := []string{
+		"default-src 'self'",
+		"script-src 'self' 'unsafe-inline' https://unpkg.com",
+		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+		"font-src 'self' https://fonts.gstatic.com",
+	}
+
+	for _, directive := range expectedDirectives {
+		if !strings.Contains(csp, directive) {
+			t.Errorf("CSP missing directive: %s. Got: %s", directive, csp)
 		}
 	}
 
