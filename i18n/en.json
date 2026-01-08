@@ -114,5 +114,7 @@
     "PasswordsLoaded": "Passwords loaded",
     "Saving": "Saving...",
     "Updating": "Updating...",
-    "Importing": "Importing..."
+    "Importing": "Importing...",
+    "NoSearchResults": "No results found matching your search.",
+    "ClearSearch": "Clear search"
 }

@@ -113,5 +113,7 @@
     "PasswordsLoaded": "Mots de passe chargés",
     "Saving": "Enregistrement...",
     "Updating": "Mise à jour...",
-    "Importing": "Importation..."
+    "Importing": "Importation...",
+    "NoSearchResults": "Aucun résultat ne correspond à votre recherche.",
+    "ClearSearch": "Effacer la recherche"
 }
