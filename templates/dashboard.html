@@ -46,6 +46,14 @@
             </div>
         </div>
     </div>
+
+    <div id="search-empty-state" class="empty-state" style="display: none;">
+        <svg class="empty-state-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3>{{T "NoSearchResults"}}</h3>
+        <button class="btn btn-secondary" onclick="clearSearch()">{{T "ClearSearch"}}</button>
+    </div>
 </div>
 
 <!-- Add Password Modal -->
@@ -66,10 +74,9 @@
             <div class="form-group">
                 <label for="add-password">{{T "Password"}}</label>
                 <div class="password-generator">
-                    <input type="password" name="password" id="add-password" required placeholder="{{T "
-                        SitePassword"}}">
+                    <input type="password" name="password" id="add-password" required placeholder="{{T "SitePassword"}}">
                     <button type="button" class="btn-generate" onclick="generateAndFillPassword('add-password')"
-                        aria-label="{{T " GeneratePassword"}}" title="{{T " GeneratePassword"}}">
+                        aria-label="{{T "GeneratePassword"}}" title="{{T "GeneratePassword"}}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -111,10 +118,9 @@
             <div class="form-group">
                 <label for="edit-password">{{T "Password"}}</label>
                 <div class="password-generator">
-                    <input type="password" name="password" id="edit-password" required placeholder="{{T "
-                        SitePassword"}}">
+                    <input type="password" name="password" id="edit-password" required placeholder="{{T "SitePassword"}}">
                     <button type="button" class="btn-generate" onclick="generateAndFillPassword('edit-password')"
-                        aria-label="{{T " GeneratePassword"}}" title="{{T " GeneratePassword"}}">
+                        aria-label="{{T "GeneratePassword"}}" title="{{T "GeneratePassword"}}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -146,8 +152,7 @@
             {{ .csrfField }}
             <div class="form-group">
                 <label for="change-new-password">{{T "NewPassword"}}</label>
-                <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "
-                    EnterPassword"}}">
+                <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "EnterPassword"}}">
             </div>
             <div id="password-error" class="error"></div>
             <div class="modal-actions">
@@ -173,8 +178,7 @@
             {{ .csrfField }}
             <div class="form-group">
                 <label for="import-csv-file" class="sr-only"
-                    style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{{T
-                    "ImportCSV"}}</label>
+                    style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{{T "ImportCSV"}}</label>
                 <input type="file" name="csv_file" id="import-csv-file" accept=".csv" required>
             </div>
             <div id="import-error" class="error"></div>
@@ -254,6 +258,7 @@
     function filterPasswords(query) {
         const cards = document.querySelectorAll('#password-grid .password-card');
         const lowerQuery = query.toLowerCase();
+        let hasVisible = false;
 
         cards.forEach(card => {
             const site = card.querySelector('h3')?.textContent.toLowerCase() || '';
@@ -261,10 +266,28 @@
 
             if (site.includes(lowerQuery) || username.includes(lowerQuery)) {
                 card.style.display = '';
+                hasVisible = true;
             } else {
                 card.style.display = 'none';
             }
         });
+
+        // Show/hide empty state for search
+        const emptyState = document.getElementById('search-empty-state');
+        if (cards.length > 0) {
+            if (!hasVisible && query.length > 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('password-search');
+        input.value = '';
+        filterPasswords('');
+        input.focus();
     }
 
     // Password Generator
