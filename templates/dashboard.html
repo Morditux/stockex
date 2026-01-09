@@ -151,6 +151,10 @@
             hx-on::after-request="if(event.detail.successful) hideChangePasswordModal();">
             {{ .csrfField }}
             <div class="form-group">
+                <label for="change-current-password">{{T "CurrentPassword"}}</label>
+                <input type="password" name="current_password" id="change-current-password" required placeholder="{{T "EnterPassword"}}">
+            </div>
+            <div class="form-group">
                 <label for="change-new-password">{{T "NewPassword"}}</label>
                 <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "EnterPassword"}}">
             </div>
