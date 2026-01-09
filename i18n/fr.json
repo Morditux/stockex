@@ -115,5 +115,6 @@
     "Updating": "Mise à jour...",
     "Importing": "Importation...",
     "NoSearchResults": "Aucun résultat ne correspond à votre recherche.",
-    "ClearSearch": "Effacer la recherche"
+    "ClearSearch": "Effacer la recherche",
+    "SkipToContent": "Aller au contenu principal"
 }

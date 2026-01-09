@@ -21,6 +21,26 @@
     --border: rgba(0, 0, 0, 0.1);
 }
 
+/* Skip to Content Link */
+.skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(-100%);
+    background: var(--primary);
+    color: white;
+    padding: 8px;
+    z-index: 9999;
+    transition: transform 0.3s;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
 /* Theme Toggle Button */
 .theme-toggle {
     background: transparent;
