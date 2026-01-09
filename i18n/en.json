@@ -116,5 +116,8 @@
     "Updating": "Updating...",
     "Importing": "Importing...",
     "NoSearchResults": "No results found matching your search.",
-    "ClearSearch": "Clear search"
+    "ClearSearch": "Clear search",
+    "CurrentPasswordRequired": "Current password is required",
+    "IncorrectCurrentPassword": "Incorrect current password",
+    "CurrentPassword": "Current Password"
 }

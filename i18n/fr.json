@@ -115,5 +115,8 @@
     "Updating": "Mise à jour...",
     "Importing": "Importation...",
     "NoSearchResults": "Aucun résultat ne correspond à votre recherche.",
-    "ClearSearch": "Effacer la recherche"
+    "ClearSearch": "Effacer la recherche",
+    "CurrentPasswordRequired": "Le mot de passe actuel est requis",
+    "IncorrectCurrentPassword": "Mot de passe actuel incorrect",
+    "CurrentPassword": "Mot de passe actuel"
 }

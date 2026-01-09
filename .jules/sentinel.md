@@ -16,3 +16,8 @@
 **Vulnerability:** The `generateRandomToken` function ignored errors from `rand.Read`, which could lead to non-random tokens if the CSPRNG fails.
 **Learning:** `crypto/rand` can fail, and silently ignoring the error can result in zeroed buffers being used as security tokens.
 **Prevention:** Always check errors from `rand.Read`. If randomness is critical for security and cannot be guaranteed, the application should fail securely (panic).
+
+## 2026-01-09 - Missing Re-Authentication on Password Change
+**Vulnerability:** The "Change Password" functionality did not require the user's current password. This allowed an attacker with session access (e.g., via hijacked cookie or unlocked workstation) to change the password and take over the account.
+**Learning:** Sensitive actions, especially those affecting authentication credentials, must always require re-authentication (Knowledge Factor) to prevent account takeover from session compromise.
+**Prevention:** Enforce current password verification for all password change or account recovery operations.

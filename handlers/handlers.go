@@ -374,7 +374,31 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentPassword := r.FormValue("current_password")
 	newPassword := r.FormValue("new_password")
+	lang := i18n.DetectLanguage(r)
+
+	if currentPassword == "" {
+		w.Header().Set("HX-Retarget", "#password-error")
+		w.Write([]byte(i18n.T(lang, "CurrentPasswordRequired")))
+		return
+	}
+
+	// Verify current password
+	var currentHash string
+	err := db.DB.QueryRow("SELECT password_hash FROM users WHERE id = ?", userID).Scan(&currentHash)
+	if err != nil {
+		w.Header().Set("HX-Retarget", "#password-error")
+		w.Write([]byte(i18n.T(lang, "InternalServerError")))
+		return
+	}
+
+	if !db.CheckPasswordHash(currentPassword, currentHash) {
+		w.Header().Set("HX-Retarget", "#password-error")
+		w.Write([]byte(i18n.T(lang, "IncorrectCurrentPassword")))
+		return
+	}
+
 	if newPassword == "" {
 		w.Header().Set("HX-Retarget", "#password-error")
 		w.Write([]byte("Password cannot be empty"))
@@ -383,14 +407,13 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := auth.ValidatePassword(newPassword); err != nil {
 		w.Header().Set("HX-Retarget", "#password-error")
-		lang := i18n.DetectLanguage(r)
 		w.Write([]byte(i18n.T(lang, "PasswordTooShort")))
 		return
 	}
 
 	hashedPassword, _ := db.HashPassword(newPassword)
 	salt, _ := db.GenerateSalt()
-	_, err := db.DB.Exec("UPDATE users SET password_hash = ?, salt = ? WHERE id = ?", hashedPassword, salt, userID)
+	_, err = db.DB.Exec("UPDATE users SET password_hash = ?, salt = ? WHERE id = ?", hashedPassword, salt, userID)
 	if err != nil {
 		w.Header().Set("HX-Retarget", "#password-error")
 		w.Write([]byte("Error updating password"))
