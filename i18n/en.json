@@ -119,5 +119,6 @@
     "ClearSearch": "Clear search",
     "CurrentPasswordRequired": "Current password is required",
     "IncorrectCurrentPassword": "Incorrect current password",
-    "CurrentPassword": "Current Password"
+    "CurrentPassword": "Current Password",
+    "SkipToContent": "Skip to content"
 }

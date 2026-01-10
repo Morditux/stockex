@@ -38,6 +38,7 @@
 </head>
 
 <body class="dark-mode">
+    <a href="#main-content" class="skip-link">{{T "SkipToContent"}}</a>
     <nav>
         <div class="container">
             <a href="/" class="logo">{{.AppName}}</a>
@@ -78,7 +79,7 @@
         </div>
     </nav>
 
-    <main class="container">
+    <main id="main-content" class="container">
         {{template "content" .}}
     </main>
 

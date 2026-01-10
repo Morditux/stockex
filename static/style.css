@@ -21,6 +21,27 @@
     --border: rgba(0, 0, 0, 0.1);
 }
 
+/* Skip to content link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 8px;
+    z-index: 200;
+    transition: top 0.3s;
+    text-decoration: none;
+    border-bottom-right-radius: 8px;
+    font-weight: 600;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 2px solid white;
+    outline-offset: -2px;
+}
+
 /* Theme Toggle Button */
 .theme-toggle {
     background: transparent;
