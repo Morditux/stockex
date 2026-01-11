@@ -677,24 +677,57 @@ p a {
 }
 
 /* Search Input */
+.search-wrapper {
+    position: relative;
+    width: 200px;
+    transition: width 0.3s ease;
+}
+
+.search-wrapper:focus-within {
+    width: 250px;
+}
+
 .search-input {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 50px;
     padding: 0.5rem 1rem;
+    padding-right: 2.5rem; /* Space for shortcut */
     color: var(--text);
     font-size: 0.9rem;
-    width: 200px;
-    transition: all 0.3s ease;
+    width: 100%; /* Fill wrapper */
+    transition: border-color 0.3s ease;
 }
 
 .search-input:focus {
     border-color: var(--primary);
-    width: 250px;
 }
 
 .search-input::placeholder {
     color: var(--text-muted);
+}
+
+.search-shortcut {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    pointer-events: none;
+    font-family: monospace;
+    font-weight: 600;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+/* Hide shortcut when user is typing/focused */
+.search-wrapper:focus-within .search-shortcut {
+    opacity: 0;
 }
 
 /* Skeleton Loading */
@@ -815,7 +848,11 @@ p a {
         width: 100%;
     }
 
-    .search-input:focus {
+    .search-wrapper {
+        width: 100%;
+    }
+
+    .search-wrapper:focus-within {
         width: 100%;
     }
 
