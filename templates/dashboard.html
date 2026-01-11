@@ -3,8 +3,11 @@
     <div class="dashboard-header">
         <h1>{{T "WelcomeToVault"}}</h1>
         <div class="header-actions">
-            <input type="text" class="search-input" id="password-search" placeholder="{{T " SearchPasswords"}}"
-                oninput="filterPasswords(this.value)">
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="password-search" placeholder="{{T "SearchPasswords"}}"
+                    oninput="filterPasswords(this.value)">
+                <kbd class="search-shortcut">/</kbd>
+            </div>
             <button class="btn btn-secondary" onclick="showChangePasswordModal()">{{T "ChangePassword"}}</button>
             <button class="btn btn-secondary" onclick="showImportModal()">{{T "ImportCSV"}}</button>
             <a href="/passwords/export" class="btn btn-secondary" target="_blank" rel="noopener noreferrer"
@@ -323,5 +326,21 @@
         input.value = generatePassword(16);
         input.type = 'text'; // Show the generated password
     }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ignore if user is typing in an input, textarea, or contenteditable
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) {
+            return;
+        }
+
+        if (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key === 'k')) {
+            e.preventDefault();
+            const searchInput = document.getElementById('password-search');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+    });
 </script>
 {{end}}
