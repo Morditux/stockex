@@ -128,18 +128,16 @@ func TestAPIAddPassword(t *testing.T) {
 	var listResp APIResponse
 	json.NewDecoder(w.Body).Decode(&listResp)
 	passwords := listResp.Data.([]interface{})
-	var encrypted string
 	for _, p := range passwords {
 		pMap := p.(map[string]interface{})
 		if int(pMap["id"].(float64)) == passwordID {
-			encrypted = pMap["encrypted_password"].(string)
 			break
 		}
 	}
 
 	// 3. Decrypt
-	decryptData := map[string]string{
-		"encrypted_password": encrypted,
+	decryptData := map[string]int{
+		"id": passwordID,
 	}
 	body, _ = json.Marshal(decryptData)
 	req = httptest.NewRequest("POST", "/api/v1/passwords/decrypt", bytes.NewBuffer(body))
