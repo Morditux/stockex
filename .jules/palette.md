@@ -1,3 +1,3 @@
-## 2024-05-22 - Keyboard Shortcut Accessibility
-**Learning:** Users who rely on keyboards often expect standard shortcuts like `/` or `Cmd+K` for search. Adding these shortcuts with visual hints (using `<kbd>` tags) significantly improves navigability for power users without cluttering the UI for others.
-**Action:** When implementing search or primary navigation features, always consider adding standard keyboard shortcuts and indicating them with a subtle visual cue (e.g., inside the input field). Ensure to trap focus correctly and prevent shortcuts from triggering when the user is already typing in a form field.
+## 2024-05-23 - Consistency in Input Interactions
+**Learning:** Users expect consistent behavior across similar inputs. If the login form has a "Show Password" toggle, the "Add Password" form should too. Inconsistent interaction patterns can lead to frustration, especially when generating random passwords that the user wants to verify.
+**Action:** When implementing a feature (like password visibility) in one part of the auth flow, verify if it should be applied to all similar inputs throughout the application.

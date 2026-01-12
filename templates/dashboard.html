@@ -77,7 +77,10 @@
             <div class="form-group">
                 <label for="add-password">{{T "Password"}}</label>
                 <div class="password-generator">
-                    <input type="password" name="password" id="add-password" required placeholder="{{T "SitePassword"}}">
+                    <div class="password-input-wrapper" style="flex: 1;">
+                        <input type="password" name="password" id="add-password" required placeholder="{{T "SitePassword"}}" style="padding-right: 4rem;">
+                        <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'add-password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+                    </div>
                     <button type="button" class="btn-generate" onclick="generateAndFillPassword('add-password')"
                         aria-label="{{T "GeneratePassword"}}" title="{{T "GeneratePassword"}}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,7 +124,10 @@
             <div class="form-group">
                 <label for="edit-password">{{T "Password"}}</label>
                 <div class="password-generator">
-                    <input type="password" name="password" id="edit-password" required placeholder="{{T "SitePassword"}}">
+                    <div class="password-input-wrapper" style="flex: 1;">
+                        <input type="password" name="password" id="edit-password" required placeholder="{{T "SitePassword"}}" style="padding-right: 4rem;">
+                        <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'edit-password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+                    </div>
                     <button type="button" class="btn-generate" onclick="generateAndFillPassword('edit-password')"
                         aria-label="{{T "GeneratePassword"}}" title="{{T "GeneratePassword"}}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,11 +161,17 @@
             {{ .csrfField }}
             <div class="form-group">
                 <label for="change-current-password">{{T "CurrentPassword"}}</label>
-                <input type="password" name="current_password" id="change-current-password" required placeholder="{{T "EnterPassword"}}">
+                <div class="password-input-wrapper">
+                    <input type="password" name="current_password" id="change-current-password" required placeholder="{{T "EnterPassword"}}" style="padding-right: 4rem;">
+                    <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'change-current-password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="change-new-password">{{T "NewPassword"}}</label>
-                <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "EnterPassword"}}">
+                <div class="password-input-wrapper">
+                    <input type="password" name="new_password" id="change-new-password" required placeholder="{{T "EnterPassword"}}" style="padding-right: 4rem;">
+                    <button type="button" class="btn btn-secondary password-toggle" onclick="toggleInputPassword(this, 'change-new-password')" aria-label="{{T "ShowPassword"}}">{{T "Show"}}</button>
+                </div>
             </div>
             <div id="password-error" class="error"></div>
             <div class="modal-actions">
@@ -325,6 +337,16 @@
         const input = document.getElementById(inputId);
         input.value = generatePassword(16);
         input.type = 'text'; // Show the generated password
+
+        // Sync toggle button if present
+        const wrapper = input.closest('.password-input-wrapper');
+        if (wrapper) {
+            const toggleBtn = wrapper.querySelector('.password-toggle');
+            if (toggleBtn) {
+                toggleBtn.innerText = '{{T "Hide"}}';
+                toggleBtn.setAttribute('aria-label', '{{T "HidePassword"}}');
+            }
+        }
     }
 
     // Keyboard shortcuts
