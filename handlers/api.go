@@ -321,7 +321,7 @@ func APIDecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var input struct {
-		EncryptedPassword string `json:"encrypted_password"`
+		ID int `json:"id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -329,7 +329,14 @@ func APIDecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decrypted, err := crypto.Decrypt(input.EncryptedPassword, session.MasterKey)
+	var encrypted string
+	err := db.DB.QueryRow("SELECT encrypted_password FROM passwords WHERE id = ? AND user_id = ?", input.ID, session.UserID).Scan(&encrypted)
+	if err != nil {
+		sendJSONResponse(w, http.StatusNotFound, APIResponse{Status: "error", Message: i18n.T(lang, "PasswordNotFound")})
+		return
+	}
+
+	decrypted, err := crypto.Decrypt(encrypted, session.MasterKey)
 	if err != nil {
 		sendJSONResponse(w, http.StatusInternalServerError, APIResponse{Status: "error", Message: i18n.T(lang, "DecryptionErrorAPI")})
 		return

@@ -352,9 +352,16 @@ func DecryptPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encrypted := r.URL.Query().Get("p")
-	if encrypted == "" {
-		http.Error(w, "Missing password", http.StatusBadRequest)
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Missing password ID", http.StatusBadRequest)
+		return
+	}
+
+	var encrypted string
+	err := db.DB.QueryRow("SELECT encrypted_password FROM passwords WHERE id = ? AND user_id = ?", id, userID).Scan(&encrypted)
+	if err != nil {
+		http.Error(w, "Password not found or unauthorized", http.StatusNotFound)
 		return
 	}
 

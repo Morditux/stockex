@@ -21,3 +21,8 @@
 **Vulnerability:** The "Change Password" functionality did not require the user's current password. This allowed an attacker with session access (e.g., via hijacked cookie or unlocked workstation) to change the password and take over the account.
 **Learning:** Sensitive actions, especially those affecting authentication credentials, must always require re-authentication (Knowledge Factor) to prevent account takeover from session compromise.
 **Prevention:** Enforce current password verification for all password change or account recovery operations.
+
+## 2026-01-12 - Decryption Oracle via Client-Controlled Ciphertext
+**Vulnerability:** The password decryption endpoint accepted arbitrary ciphertext from the client and decrypted it using the user's master key. This effectively created a decryption oracle, allowing an attacker to decrypt any data encrypted with that key, and exposed encrypted secrets in URL parameters.
+**Learning:** Trusting client-supplied ciphertext for decryption is dangerous. It exposes the system to oracle attacks and unnecessarily exposes internal data structures.
+**Prevention:** Use Reference-Based Decryption. The client should request decryption of a specific record by ID. The server must verify ownership and retrieve the ciphertext from its trusted storage before decrypting.
